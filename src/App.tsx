@@ -988,3 +988,515 @@ function ExpenseSheetView({
               ♻️ Восстановить
             </button>
           )}
+          <button 
+            onClick={() => onEdit(sheet)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors min-w-[120px]"
+            title="Редактировать"
+          >
+            ✍️ Редактировать
+          </button>
+          {!isArchived && (
+            <button 
+              onClick={() => onArchive(sheet.id)}
+              className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white text-sm rounded transition-colors min-w-[120px]"
+              title="Отправить в архив"
+            >
+              📦 В архив
+            </button>
+          )}
+          <button 
+            onClick={handleExportToExcel}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors min-w-[120px]"
+            title="Импорт в Excel"
+          >
+            📊 Импорт в Excel
+          </button>
+        </div>        </div>
+        
+        {/* Информация в шапке */}
+        <div className="space-y-2 text-sm">
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            <div>
+              <span className="text-slate-600">Дата составления:</span>{' '}
+              <span className="font-semibold">{formatDateShort(sheet.date)}</span>
+            </div>
+            <div>
+              <span className="text-slate-600">Сотрудник:</span>{' '}
+              <span className="font-semibold">{employeeFormatted}</span>
+            </div>
+            <div>
+              <span className="text-slate-600">Пациент:</span>{' '}
+              <span className="font-semibold">{patientFormatted}</span>
+            </div>
+            <div>
+              <span className="text-slate-600">Дата рождения:</span>{' '}
+              <span className="font-semibold">{sheet.patientBirthDate ? formatDateShort(sheet.patientBirthDate) : '-'}</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-x-2 gap-y-2">
+            <div>
+              <span className="text-slate-600">Категория выезда:</span>{' '}
+              <span className="font-semibold">{sheet.callCategory}</span>
+            </div>
+            <div>
+              <span className="text-slate-600">Название терапии:</span>{' '}
+              <span className="font-semibold">{sheet.therapyName || '-'}</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <div>
+              <span className="text-slate-600">Стоимость терапии:</span>{' '}
+              <span className="font-semibold">
+                {sheet.therapyCost.toLocaleString('ru-RU')} ₽
+                {sheet.therapyCost > 0 && (
+                  <span className="text-slate-500 ml-2">(лимит: {limitAmount.toLocaleString('ru-RU')} ₽)</span>
+                )}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-600">Итого по препаратам:</span>{' '}
+              <span className="font-semibold">{sheet.totalAmount.toLocaleString('ru-RU')} ₽</span>
+            </div>
+          </div>
+
+          {/* Использование лимита */}
+          {sheet.therapyCost > 0 && (
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm text-slate-700">Использование лимита</span>
+                <span className={`text-sm ${isExceeded ? 'text-red-600' : isLow ? 'text-slate-500' : 'text-emerald-600'}`}>
+                  {limit.toFixed(2)}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all ${
+                    isExceeded ? 'bg-red-500' : isLow ? 'bg-slate-400' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.min(limit, 100)}%` }}
+                ></div>
+              </div>
+              {isExceeded && <div className="text-xs text-red-600 mt-1">⚠️ Превышение лимита 5%</div>}
+              {isLow && <div className="text-xs text-slate-500 mt-1">ℹ️ Лимит ниже 2.5%</div>}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Тело - белый цвет */}
+      <div className="bg-white p-6">
+        {/* Препараты и расходники */}
+        <div className="mb-2">
+          <h3 className="text-base font-semibold text-slate-800">Препараты и расходники</h3>
+        </div>
+        <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
+          <table className="w-full border-collapse">
+            <colgroup>
+              <col style={{ width: '40%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+            </colgroup>
+            <thead>
+              <tr className="bg-slate-100">
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300">Название</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300">Тип</th>
+                <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300">Количество</th>
+                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300">Цена за единицу</th>
+                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300">Сумма</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sheet.items.length > 0 ? (
+                [...sheet.items]
+                  .sort((a, b) => {
+                    // ЛС ПКУ всегда первые
+                    if (a.category === 'ЛС ПКУ' && b.category !== 'ЛС ПКУ') return -1;
+                    if (a.category !== 'ЛС ПКУ' && b.category === 'ЛС ПКУ') return 1;
+                    return 0;
+                  })
+                  .map(item => (
+                    <tr key={item.nomenclatureId} className="border-b border-slate-200">
+                      <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300">{item.name}</td>
+                      <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300">{item.category}</td>
+                      <td className="px-3 py-2 text-center text-sm text-slate-800 border border-slate-300">{item.quantity}</td>
+                      <td className="px-3 py-2 text-right text-sm text-slate-700 border border-slate-300">{item.pricePerUnit.toLocaleString('ru-RU')} ₽</td>
+                      <td className="px-3 py-2 text-right text-sm font-semibold text-slate-800 border border-slate-300">{item.total.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                  ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-3 py-4 text-center text-sm text-slate-400 border border-slate-300">Нет данных</td>
+                </tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-slate-300 bg-slate-50">
+                <td className="px-3 py-2 text-left text-sm font-semibold text-slate-800 border border-slate-300">ИТОГО</td>
+                <td colSpan={3} className="border border-slate-300"></td>
+                <td className="px-3 py-2 text-right text-sm font-semibold text-blue-600 border border-slate-300">{sheet.totalAmount.toLocaleString('ru-RU')} ₽</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ РАСХОД У СОТРУДНИКА ============
+// ============ АРХИВ ============
+function ArchivePage({ data }: {  ReturnType<typeof useData> }) {
+  const { employees, expenseSheets, setExpenseSheets, arrivals, setArrivals } = data;
+  const [filterType, setFilterType] = useState<'month' | 'quarter' | 'halfyear' | 'year' | 'all'>('month');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [showArchiveList, setShowArchiveList] = useState(false);
+  const [showFiredEmployees, setShowFiredEmployees] = useState(false);
+  const [showArrivalsArchive, setShowArrivalsArchive] = useState(false);
+  
+  // Получение уволенных сотрудников
+  const firedEmployees = employees.filter(e => e.status === 'Уволен');
+
+  // Функция для определения периода
+  const getPeriodMonths = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+
+    switch (filterType) {
+      case 'month':
+        return [selectedMonth];
+      case 'quarter': {
+        const quarterStart = Math.floor(currentMonth / 3) * 3;
+        const months = [];
+        for (let i = 0; i < 3; i++) {
+          const month = quarterStart + i;
+          months.push(`${currentYear}-${String(month + 1).padStart(2, '0')}`);
+        }
+        return months;
+      }
+      case 'halfyear': {
+        const halfyearStart = Math.floor(currentMonth / 6) * 6;
+        const months = [];
+        for (let i = 0; i < 6; i++) {
+          const month = halfyearStart + i;
+          months.push(`${currentYear}-${String(month + 1).padStart(2, '0')}`);
+        }
+        return months;
+      }
+      case 'year': {
+        const months = [];
+        for (let i = 0; i < 12; i++) {
+          months.push(`${currentYear}-${String(i + 1).padStart(2, '0')}`);
+        }
+        return months;
+      }
+      case 'all':
+        return []; // Пустой массив означает все месяцы
+      default:
+        return [selectedMonth];
+    }
+  };
+
+  // Фильтрация по выбранному периоду (только архивированные)
+  const archivedSheets = expenseSheets.filter(s => {
+    if (!s.archived) return false;
+    if (filterType === 'all') return true;
+    const periodMonths = getPeriodMonths();
+    return periodMonths.includes(s.month);
+  });
+
+  // Фильтрация архивированных карт прихода
+  const archivedArrivals = arrivals.filter(a => {
+    if (!a.archived) return false;
+    if (filterType === 'all') return true;
+    const periodMonths = getPeriodMonths();
+    return periodMonths.includes(a.month);
+  });
+
+  // Расчёт статистики
+  const totalExpense = archivedSheets.reduce((sum, s) => sum + s.totalAmount, 0);
+  const sheetsCount = archivedSheets.length;
+  const totalArrivalAmount = archivedArrivals.reduce((sum, a) => sum + a.amount, 0);
+  const arrivalsCount = archivedArrivals.length;
+
+  // Генерация списка месяцев
+  const generateMonthOptions = () => {
+    const months = [];
+    const current = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(current.getFullYear(), current.getMonth() - i, 1);
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+      months.push({ value: monthStr, label: monthName });
+    }
+    return months;
+  };
+
+  // Получение текста для отображения периода
+  const getPeriodLabel = () => {
+    const now = new Date();
+    switch (filterType) {
+      case 'month':
+        return new Date(selectedMonth + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      case 'quarter': {
+        const quarter = Math.floor(now.getMonth() / 3) + 1;
+        return `${quarter} квартал ${now.getFullYear()}`;
+      }
+      case 'halfyear': {
+        const halfyear = Math.floor(now.getMonth() / 6) + 1;
+        return `${halfyear} полугодие ${now.getFullYear()}`;
+      }
+      case 'year':
+        return `${now.getFullYear()} год`;
+      case 'all':
+        return 'Всё время';
+      default:
+        return '';
+    }
+  };
+
+  // Восстановление из архива
+  const handleRestoreSheet = async (id: string) => {
+    if (!confirm('Восстановить лист расхода из архива?')) return;
+    setExpenseSheets(expenseSheets.map(s => s.id === id ? { ...s, archived: false } : s));
+    try {
+      await gs.restoreExpenseSheet(id);
+    } catch (err) {
+      console.error('Ошибка восстановления:', err);
+      alert('Ошибка при восстановлении. Попробуйте ещё раз.');
+    }
+  };
+
+  // Восстановление карты прихода из архива
+  const handleRestoreArrival = async (id: string) => {
+    if (!confirm('Восстановить карту прихода из архива?')) return;
+    setArrivals(arrivals.map(a => a.id === id ? { ...a, archived: false } : a));
+    try {
+      await gs.restoreArrival(id);
+    } catch (err) {
+      console.error('Ошибка восстановления:', err);
+      alert('Ошибка при восстановлении. Попробуйте ещё раз.');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">🗄️ Архив</h2>
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as any)}
+            className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="month">Месяц</option>
+            <option value="quarter">Квартал</option>
+            <option value="halfyear">Полгода</option>
+            <option value="year">Год</option>
+            <option value="all">Всё время</option>
+          </select>
+          {filterType === 'month' && (
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              {generateMonthOptions().map(month => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
+      {/* Карточки статистики */}
+      <div className="grid grid-cols-3 gap-4">
+        <div 
+          onClick={() => setShowArchiveList(true)}
+          className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-blue-500 hover:shadow-md transition-all"
+        >
+          <div className="text-xs text-slate-500 uppercase mb-2">ЛИСТОВ РАСХОДА В АРХИВЕ</div>
+          <div className="text-2xl font-bold text-slate-600">{sheetsCount}</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">{getPeriodLabel()}</div>
+        </div>
+
+        <div 
+          onClick={() => setShowArrivalsArchive(true)}
+          className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-green-500 hover:shadow-md transition-all"
+        >
+          <div className="text-xs text-slate-500 uppercase mb-2">КАРТ ПРИХОДА В АРХИВЕ</div>
+          <div className="text-2xl font-bold text-green-600">{arrivalsCount}</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">{getPeriodLabel()}</div>
+        </div>
+        
+        <div 
+          onClick={() => setShowFiredEmployees(true)}
+          className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-red-500 hover:shadow-md transition-all"
+        >
+          <div className="text-xs text-slate-500 uppercase mb-2">СОТРУДНИКИ</div>
+          <div className="text-2xl font-bold text-red-600">{firedEmployees.length}</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">Уволено</div>
+        </div>
+      </div>
+
+      {/* Модальное окно со списком архивированных листов */}
+      {showArchiveList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-slate-100 px-6 py-4 flex justify-between items-center border-b border-slate-300">
+              <h2 className="text-xl font-bold text-slate-800">🗄️ Архивированные листы расхода</h2>
+              <button 
+                onClick={() => setShowArchiveList(false)}
+                className="text-slate-500 hover:text-slate-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {archivedSheets.length === 0 ? (
+                <div className="bg-white rounded-xl p-8 text-center text-slate-500 border border-slate-200">
+                  <p>Нет архивированных листов расхода за {getPeriodLabel()}</p>
+                </div>
+              ) : (
+                archivedSheets.map(sheet => (
+                  <ExpenseSheetView
+                    key={sheet.id}
+                    sheet={sheet}
+                    employees={employees}
+                    onArchive={() => {}}
+                    onEdit={() => {}}
+                    onRestore={handleRestoreSheet}
+                    isArchived={true}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно со списком уволенных сотрудников */}
+      {showFiredEmployees && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-slate-100 px-6 py-4 flex justify-between items-center border-b border-slate-300">
+              <h2 className="text-xl font-bold text-slate-800">👥 Уволенные сотрудники</h2>
+              <button 
+                onClick={() => setShowFiredEmployees(false)}
+                className="text-slate-500 hover:text-slate-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              {firedEmployees.length === 0 ? (
+                <div className="bg-white rounded-xl p-8 text-center text-slate-500 border border-slate-200">
+                  <p>Нет уволенных сотрудников</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {firedEmployees.map(emp => (
+                    <div key={emp.id} className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold text-lg">
+                          {emp.fullName.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-slate-800">{emp.fullName}</div>
+                          <div className="text-sm text-slate-500 mt-1">{emp.position}</div>
+                          {emp.phone && (
+                            <div className="text-xs text-slate-400 mt-2">
+                              Телефон: {emp.phone}
+                            </div>
+                          )}
+                          {emp.hireDate && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              Дата найма: {new Date(emp.hireDate).toLocaleDateString('ru-RU')}
+                            </div>
+                          )}
+                          <div className="text-xs text-red-600 mt-1">
+                            Дата увольнения: {new Date().toLocaleDateString('ru-RU')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно со списком архивированных карт прихода */}
+      {showArrivalsArchive && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-slate-100 px-6 py-4 flex justify-between items-center border-b border-slate-300">
+              <h2 className="text-xl font-bold text-slate-800">📥 Архивированные карты прихода</h2>
+              <button 
+                onClick={() => setShowArrivalsArchive(false)}
+                className="text-slate-500 hover:text-slate-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {archivedArrivals.length === 0 ? (
+                <div className="bg-white rounded-xl p-8 text-center text-slate-500 border border-slate-200">
+                  <p>Нет архивированных карт прихода за {getPeriodLabel()}</p>
+                </div>
+              ) : (
+                archivedArrivals.map(arrival => (
+                  <div key={arrival.id} className="bg-white border border-slate-300 rounded-lg shadow-sm overflow-hidden">
+                    <div className="bg-slate-100 px-6 py-4 border-b border-slate-300">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-800">Карта прихода</h3>
+                          <p className="text-sm text-slate-600 mt-1">
+                            {new Date(arrival.date).toLocaleDateString('ru-RU')} • {arrival.employeeName || 'Сотрудник'}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleRestoreArrival(arrival.id)}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded transition-colors"
+                        >
+                          ♻️ Восстановить
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <span className="text-sm text-slate-600">Сумма:</span>
+                          <span className="ml-2 text-lg font-bold text-emerald-600">{arrival.amount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <div>
+                          <span className="text-sm text-slate-600">Тип:</span>
+                          <span className="ml-2 text-sm font-semibold">{arrival.type}</span>
+                        </div>
+                      </div>
+                      {arrival.items && arrival.items.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-700 mb-2">Позиции:</h4>
+                          <div className="space-y-2">
+                            {arrival.items.map((item, idx) => {
+                              const nomenclatureItem = data.nomenclature.find(n => n.id === item.nomenclatureId);
+                              return (
+                                <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded">
+                                  <span className="text-sm text-slate-700">{nomenclatureItem?.name || 'Номенклатура'}</span>
+                                  <span className="text-sm font-semibold text-slate-800">
+                                    {item.quantity} × {item.price.toLocaleString('ru-RU')} ₽ = {item.total.toLocaleString('ru-RU')} ₽
+                                  </span>
+                                </div>
+                              );
+                            })}
