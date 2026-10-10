@@ -1900,7 +1900,10 @@ function ViewArrivalModal({
             <div>
               <label className="text-sm text-slate-600 mb-1 block">Сотрудник</label>
               <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
-                {arrival.employeeName || arrival.employeeId}
+                {(() => {
+                  const employee = employees.find(e => e.id === arrival.employeeId);
+                  return employee ? employee.fullName : (arrival.employeeName || arrival.employeeId);
+                })()}
               </div>
             </div>
           </div>
@@ -2411,7 +2414,10 @@ function ArrivalPage({ data }: { data: ReturnType<typeof useData> }) {
                     className="px-5 py-3 text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
                     onClick={() => setViewingArrival(arr)}
                   >
-                    {arr.employeeName || arr.employeeId}
+                    {(() => {
+                      const employee = employees.find(e => e.id === arr.employeeId);
+                      return employee ? employee.fullName : (arr.employeeName || arr.employeeId);
+                    })()}
                   </td>
                   <td className="px-5 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs ${arr.type === 'Плановый' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{arr.type}</span>
