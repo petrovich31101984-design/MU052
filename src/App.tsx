@@ -1843,9 +1843,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
       {/* Шапка */}
-      <div className="bg-white px-6 py-4 shadow-md">
+      <div className="bg-white px-6 py-4 shadow-md flex-shrink-0">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">🧰 Остаток у сотрудника</h2>
@@ -1861,8 +1861,8 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       </div>
 
       {/* Тело */}
-      <div className="bg-white p-6">
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] border border-slate-200 rounded-lg relative">
+      <div className="bg-white p-6 flex-1 overflow-hidden">
+        <div className="overflow-x-auto overflow-y-auto h-full border border-slate-200 rounded-lg relative">
           <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
