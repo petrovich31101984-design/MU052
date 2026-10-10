@@ -417,6 +417,10 @@ export async function deleteArrival(id: string): Promise<void> {
   await postData('deleteArrival', { id });
 }
 
+export async function archiveArrival(id: string): Promise<void> {
+  await postData('archiveArrival', { id });
+}
+
 export async function restoreArrival(id: string): Promise<void> {
   await postData('restoreArrival', { id });
 }

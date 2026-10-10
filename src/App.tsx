@@ -1147,7 +1147,7 @@ function ExpenseSheetView({
 
 // ============ РАСХОД У СОТРУДНИКА ============
 // ============ АРХИВ ============
-function ArchivePage({ data }: {  ReturnType<typeof useData> }) {
+function ArchivePage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, expenseSheets, setExpenseSheets, arrivals, setArrivals } = data;
   const [filterType, setFilterType] = useState<'month' | 'quarter' | 'halfyear' | 'year' | 'all'>('month');
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -1515,7 +1515,7 @@ function ArchivePage({ data }: {  ReturnType<typeof useData> }) {
   );
 }
 
-function ExpensePage({ data }: {  ReturnType<typeof useData> }) {
+function ExpensePage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, expenseSheets, setExpenseSheets, nomenclature } = data;
   const [editingSheet, setEditingSheet] = useState<gs.ExpenseSheet | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -1650,7 +1650,7 @@ function ExpensePage({ data }: {  ReturnType<typeof useData> }) {
 }
 
 // ============ ОСТАТОК У СОТРУДНИКА ============
-function BalancePage({ data }: {  ReturnType<typeof useData> }) {
+function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, nomenclature, arrivals, expenseSheets } = data;
   
   // Получаем всех сотрудников, кроме уволенных
@@ -1967,7 +1967,7 @@ function ViewArrivalModal({
 }
 
 // ============ НОМЕНКЛАТУРА ============
-function NomenclaturePage({ data }: {  ReturnType<typeof useData> }) {
+function NomenclaturePage({ data }: { data: ReturnType<typeof useData> }) {
   const { nomenclature, setNomenclature } = data;
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
@@ -2281,7 +2281,7 @@ function ViewNomenclatureCardModal({
 }
 
 // ============ ПРИХОД К СОТРУДНИКУ ============
-function ArrivalPage({ data }: {  ReturnType<typeof useData> }) {
+function ArrivalPage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, nomenclature, arrivals, setArrivals, refresh } = data;
   const [showAddArrival, setShowAddArrival] = useState(false);
   const [editingArrival, setEditingArrival] = useState<gs.Arrival | null>(null);
@@ -2766,7 +2766,7 @@ function EditExpenseSheetModal({
 }
 
 // ============ СОТРУДНИКИ ============
-function EmployeesPage({ data }: {  ReturnType<typeof useData> }) {
+function EmployeesPage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, setEmployees, arrivals, expenses, nomenclature } = data;
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -3976,3 +3976,329 @@ export default function App() {
         </nav>
         {sidebarOpen && (
           <div className="p-4 border-t border-slate-200">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+              <span className="text-xs text-slate-500">Подключено к Google Sheets</span>
+            </div>
+          </div>
+        )}
+      </aside>
+
+      {/* Main */}
+      <div className={`flex-1 ${sidebarOpen ? 'ml-80' : 'ml-20'} transition-all duration-300`}>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-600">
+              {sidebarOpen ? '◀' : '▶'}
+            </button>
+            <h2 className="text-lg font-semibold text-slate-800">
+              {menuItems.find(m => m.id === currentPage)?.label}
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => data.refresh()} className="p-2 rounded-lg hover:bg-slate-100 text-slate-600" title="Обновить данные">🔄</button>
+            <div className="text-sm text-slate-500 hidden md:block">
+              {new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </div>
+          </div>
+        </header>
+        <main className="p-6">{renderPage()}</main>
+      </div>
+    </div>
+  );
+}
+
+// ============ DASHBOARD ============
+function Dashboard({ data }: { data: ReturnType<typeof useData> }) {
+  const { employees, nomenclature, arrivals, expenseSheets, returns } = data;
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  
+  // Предыдущий месяц
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+  
+  // Названия месяцев
+  const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const lastMonthName = monthNames[lastMonthDate.getMonth()];
+  const currentMonthName = monthNames[now.getMonth()];
+  
+  // Названия месяцев в именительном падеже для заголовков
+  const lastMonthNameNominative = lastMonthDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  const currentMonthNameNominative = now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  
+  const activeEmployees = employees.filter(e => e.status === 'Активен');
+  const allEmployees = employees.filter(e => e.status !== 'Уволен');
+
+  // Расчеты за предыдущий месяц
+  const getArrival = (empId: string, month: string) => arrivals.filter(a => a.employeeId === empId && a.month === month).reduce((s, a) => s + a.amount, 0);
+  const getExpenseValue = (empId: string, month: string) => expenseSheets.filter(s => s.employeeId === empId && s.month === month && !s.archived).reduce((s, sheet) => s + sheet.totalAmount, 0);
+  const getExpenseCount = (empId: string, month: string) => expenseSheets.filter(s => s.employeeId === empId && s.month === month && !s.archived).length;
+
+  // Функция для расчёта остатка по сотруднику и номенклатуре (в количестве)
+  const calculateBalance = (employeeId: string, nomenclatureId: string): number => {
+    let totalArrival = 0;
+    arrivals.forEach(arrival => {
+      if (arrival.employeeId === employeeId && arrival.items) {
+        arrival.items.forEach(item => {
+          if (item.nomenclatureId === nomenclatureId) {
+            totalArrival += item.quantity;
+          }
+        });
+      }
+    });
+
+    let totalExpense = 0;
+    expenseSheets.forEach(sheet => {
+      if (sheet.employeeId === employeeId && !sheet.archived && sheet.items) {
+        sheet.items.forEach(item => {
+          if (item.nomenclatureId === nomenclatureId) {
+            totalExpense += item.quantity;
+          }
+        });
+      }
+    });
+
+    return totalArrival - totalExpense;
+  };
+
+  // Функция для расчёта стоимости остатка сотрудника
+  const calculateEmployeeBalanceValue = (employeeId: string): number => {
+    let totalValue = 0;
+    nomenclature.forEach(item => {
+      const balance = calculateBalance(employeeId, item.id);
+      totalValue += balance * item.currentPrice;
+    });
+    return totalValue;
+  };
+
+  const totalArrivalLastMonth = activeEmployees.reduce((s, e) => s + getArrival(e.id, lastMonth), 0);
+  const totalExpenseLastMonth = activeEmployees.reduce((s, e) => s + getExpenseValue(e.id, lastMonth), 0);
+  const totalExpenseCountLastMonth = activeEmployees.reduce((s, e) => s + getExpenseCount(e.id, lastMonth), 0);
+  
+  // Остатки на руках = сумма стоимости остатков всех сотрудников
+  const totalBalanceOnHand = allEmployees.reduce((s, e) => s + calculateEmployeeBalanceValue(e.id), 0);
+  
+  const pendingReturns = returns.filter(r => r.status === 'Новый').length;
+
+  // Состояния для уведомлений и сообщений
+  const [notifications, setNotifications] = useState<Array<{ id: number; text: string; time: string; type: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: number; from: string; text: string; time: string }>>([]);
+
+  const handleNotificationClick = (id: number) => {
+    setNotifications(notifications.filter(n => n.id !== id));
+  };
+
+  const handleMessageClick = (id: number) => {
+    setMessages(messages.filter(m => m.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Приход за предыдущий месяц */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+          <div className="text-sm italic text-slate-600 mb-2">Приход<br />(за предыдущий месяц)</div>
+          <div className="text-2xl font-bold text-emerald-600 mb-1">{totalArrivalLastMonth.toLocaleString('ru-RU')} ₽</div>
+          <div className="text-xs text-slate-500">
+            {lastMonthDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        {/* Расход за предыдущий месяц */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+          <div className="text-sm italic text-slate-600 mb-2">Расход<br />(за предыдущий месяц)</div>
+          <div className="text-2xl font-bold text-red-600 mb-1">{totalExpenseLastMonth.toLocaleString('ru-RU')} ₽</div>
+          <div className="text-xs text-slate-500">
+            {lastMonthDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        {/* Остатки на руках */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-blue-500 flex flex-col justify-between">
+          <div className="text-sm italic text-slate-600 mb-2">Остатки на руках</div>
+          <div className="flex-1"></div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{totalBalanceOnHand.toLocaleString('ru-RU')} ₽</div>
+          <div className="text-xs text-slate-500 mt-auto">
+            {now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        {/* Листов расхода за предыдущий месяц */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+          <div className="text-sm italic text-slate-600 mb-2">Листов расхода<br />(за предыдущий месяц)</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{totalExpenseCountLastMonth}</div>
+          <div className="text-xs text-slate-500">
+            {lastMonthDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+      </div>
+
+      {/* Блоки уведомлений и сообщений */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Блок уведомлений */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm h-96 flex flex-col">
+          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-slate-800">🔔 Уведомления</h3>
+            <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+              {notifications.length}
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {notifications.length === 0 ? (
+              <div className="text-center text-slate-400 mt-8">
+                <div className="text-3xl mb-2">🔕</div>
+                <p>Нет новых уведомлений</p>
+              </div>
+            ) : (
+              notifications.map(notif => (
+                <div
+                  key={notif.id}
+                  className={`p-4 rounded-lg border ${
+                    notif.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                    notif.type === 'alert' ? 'bg-red-50 border-red-200' :
+                    'bg-blue-50 border-blue-200'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-800 font-medium">{notif.text}</p>
+                      <p className="text-xs text-slate-500 mt-1">{notif.time}</p>
+                    </div>
+                    <span 
+                      onClick={() => handleNotificationClick(notif.id)}
+                      className="text-red-500 text-lg cursor-pointer hover:text-red-700 transition-colors"
+                    >×</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Блок сообщений */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm h-96 flex flex-col">
+          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-slate-800">💬 Сообщения</h3>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+              {messages.length}
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 ? (
+              <div className="text-center text-slate-400 mt-8">
+                <div className="text-3xl mb-2">📭</div>
+                <p>Нет новых сообщений</p>
+              </div>
+            ) : (
+              messages.map(msg => (
+                <div
+                  key={msg.id}
+                  className="p-4 rounded-lg border border-slate-200 bg-slate-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                      {(msg.from || '').split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-800">{msg.from}</p>
+                      <p className="text-sm text-slate-600 mt-1">{msg.text}</p>
+                      <p className="text-xs text-slate-500 mt-1">{msg.time}</p>
+                    </div>
+                    <span 
+                      onClick={() => handleMessageClick(msg.id)}
+                      className="text-red-500 text-lg cursor-pointer hover:text-red-700 transition-colors"
+                    >×</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {pendingReturns > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-3">
+          <span className="text-2xl">↩️</span>
+          <div className="flex-1">
+            <span className="text-orange-700 font-semibold">Ожидают обработки возвратов:</span>
+            <span className="text-orange-600 ml-2">{pendingReturns}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-800">Сотрудники — общая сводка</h3>
+          <div className="text-sm text-slate-600">
+            Активных сотрудников: <span className="font-semibold text-emerald-600">{activeEmployees.length}</span>
+          </div>
+        </div>
+        <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
+          <table className="w-full">
+            <thead className="sticky top-0 bg-slate-50 z-10">
+              <tr className="border-b border-slate-200 text-left bg-slate-50">
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Сотрудник</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Статус</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Приход<br /><span className="text-xs font-normal">({lastMonthNameNominative})</span></th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Расход<br /><span className="text-xs font-normal">({lastMonthNameNominative})</span></th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Остатки на руках</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Листов расхода<br /><span className="text-xs font-normal">({lastMonthNameNominative})</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {employees
+                .filter(e => e.status !== 'Уволен')
+                .sort((a, b) => {
+                  if (a.status === 'Активен' && b.status !== 'Активен') return -1;
+                  if (a.status !== 'Активен' && b.status === 'Активен') return 1;
+                  return 0;
+                })
+                .map(emp => {
+                  const arr = getArrival(emp.id, lastMonth);
+                  const exp = getExpenseValue(emp.id, lastMonth);
+                  const bal = calculateEmployeeBalanceValue(emp.id);
+                  const expenseCount = getExpenseCount(emp.id, lastMonth);
+                  return (
+                  <tr key={emp.id} className="border-b border-slate-100 hover:bg-blue-50 hover:shadow-md transition-all duration-200 cursor-pointer">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-blue-500">
+                          {(emp.fullName || '').split(' ').slice(0, 2).map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-800">{emp.fullName || 'Без имени'}</div>
+                          <div className="text-xs text-slate-500">{emp.position || 'Не указана'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {emp.blocked ? (
+                          <span className="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700">🔒 Заблокирован</span>
+                        ) : emp.shiftOpen ? (
+                          <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">🟢 Активен</span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-600">⚪ Не активен</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-emerald-600">{arr.toLocaleString('ru-RU')} ₽</td>
+                    <td className="px-5 py-3 text-sm text-red-600">{exp.toLocaleString('ru-RU')} ₽</td>
+                    <td className={`px-5 py-3 text-sm font-semibold ${bal >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                      {bal.toLocaleString('ru-RU')} ₽
+                    </td>
+                    <td className="px-5 py-3 text-sm text-orange-600">{expenseCount}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {employees.length === 0 && (
+          <div className="p-8 text-center text-slate-500">
+            <div className="text-3xl mb-2">👥</div>
+            <p>Нет данных о сотрудниках</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
