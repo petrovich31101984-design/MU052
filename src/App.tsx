@@ -1654,7 +1654,55 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, nomenclature, arrivals, expenseSheets } = data;
   
   // Получаем всех сотрудников, кроме уволенных (включая Неактивен, Отпуск и т.д.)
-  const allEmployees = employees.filter(e => e.status !== 'Уволен');
+  // Убираем дубликаты по ФИО — оставляем только первую запись с таким ФИО
+  const seenNames = new Set<string>();
+  const allEmployees = employees.filter(e => {
+    if (e.status === 'Уволен') return false;
+    const fullName = String(e.fullName ?? '').trim().toLowerCase();
+    if (seenNames.has(fullName)) {
+      return false;
+    }
+    seenNames.add(fullName);
+    return true;
+  });
+  
+  // Отладка: выводим всех сотрудников и их статусы
+  console.log('👥 ВСЕ СОТРУДНИКИ (включая уволенных):', employees.map(e => ({
+    id: e.id,
+    fullName: e.fullName,
+    status: e.status,
+    blocked: e.blocked,
+    shiftOpen: e.shiftOpen
+  })));
+  
+  console.log('✅ СОТРУДНИКИ ДЛЯ ОСТАТКОВ (без дубликатов и уволенных):', allEmployees.map(e => ({
+    id: e.id,
+    fullName: e.fullName,
+    status: e.status
+  })));
+  
+  // Проверяем, есть ли Григорьева в списке
+  const grigorieva = employees.find(e => e.fullName.includes('Григорьева'));
+  if (grigorieva) {
+    console.log('🔍 ГРИГОРЬЕВА найдена:', {
+      id: grigorieva.id,
+      fullName: grigorieva.fullName,
+      status: grigorieva.status,
+      isInAllEmployees: allEmployees.some(e => e.id === grigorieva.id)
+    });
+    
+    // Проверяем приходы Григорьевой
+    const grigorievaArrivals = arrivals.filter(a => a.employeeId === grigorieva.id);
+    console.log('📥 Приходы Григорьевой:', grigorievaArrivals.length, grigorievaArrivals.map(a => ({
+      id: a.id,
+      employeeId: a.employeeId,
+      amount: a.amount,
+      archived: a.archived,
+      itemsCount: Array.isArray(a.items) ? a.items.length : 'N/A'
+    })));
+  } else {
+    console.warn('⚠️ ГРИГОРЬЕВА НЕ НАЙДЕНА в списке сотрудников!');
+  }
 
   // Отладочная информация - выводим все приходы
   console.log('📊 ВСЕ ПРИХОДЫ:', arrivals.map(a => ({
