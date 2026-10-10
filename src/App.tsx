@@ -1845,7 +1845,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   return (
     <div className="space-y-6">
       {/* Шапка */}
-      <div className="bg-slate-100 px-6 py-4 shadow-md">
+      <div className="bg-white px-6 py-4 shadow-md">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">🧰 Остаток у сотрудника</h2>
