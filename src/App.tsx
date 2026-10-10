@@ -1653,11 +1653,11 @@ function ExpensePage({ data }: { data: ReturnType<typeof useData> }) {
 function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   const { employees, nomenclature, arrivals, expenseSheets } = data;
   
-  // Получаем всех сотрудников, кроме уволенных
-  const activeEmployees = employees.filter(e => e.status !== 'Уволен');
+  // Получаем всех сотрудников, кроме уволенных (включая Неактивен, Отпуск и т.д.)
+  const allEmployees = employees.filter(e => e.status !== 'Уволен');
 
   // Отладочная информация - ищем сотрудника Стадник
-  const stadnikEmployee = activeEmployees.find(emp => emp.fullName.includes('Стадник'));
+  const stadnikEmployee = allEmployees.find((emp: gs.Employee) => emp.fullName.includes('Стадник'));
   if (stadnikEmployee) {
     const stadnikArrivals = arrivals.filter(a => a.employeeId === stadnikEmployee.id);
     const stadnikExpenseSheets = expenseSheets.filter(s => s.employeeId === stadnikEmployee.id);
@@ -1721,7 +1721,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   // Функция для расчёта общего количества по номенклатуре
   const calculateTotalQuantity = (nomenclatureId: string): number => {
     let total = 0;
-    activeEmployees.forEach(emp => {
+    allEmployees.forEach((emp: gs.Employee) => {
       total += calculateBalance(emp.id, nomenclatureId);
     });
     return total;
@@ -1740,7 +1740,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   // Функция для расчёта общего итога
   const calculateGrandTotal = (): number => {
     let total = 0;
-    activeEmployees.forEach(emp => {
+    allEmployees.forEach((emp: gs.Employee) => {
       total += calculateEmployeeTotal(emp.id);
     });
     return total;
@@ -1790,13 +1790,13 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Ед. изм.</th>
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[420px] bg-slate-100 z-20" style={{ minWidth: '120px' }}>Цена за единицу</th>
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[540px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Количество</th>
-                {activeEmployees.map(emp => {
+                {allEmployees.map((emp: gs.Employee) => {
                   const parts = emp.fullName.trim().split(' ');
                   const lastName = parts[0] || '';
-                  const initials = parts.slice(1).map(p => p[0] + '.').join('');
+                  const initials = parts.slice(1).map((p: string) => p[0] + '.').join('');
                   const formattedName = initials ? `${lastName} ${initials}` : lastName;
                   return (
-                    <th key={emp.id} className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300" style={{ minWidth: '120px' }}>
+                    <th key={emp.id} className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100" style={{ minWidth: '120px' }}>
                       {formattedName}
                     </th>
                   );
@@ -1807,52 +1807,53 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
             <tbody>
               {nomenclature.length === 0 ? (
                 <tr>
-                  <td colSpan={5 + activeEmployees.length + 1} className="px-3 py-8 text-center text-sm text-slate-400 border border-slate-300">
+                  <td colSpan={5 + allEmployees.length + 1} className="px-3 py-8 text-center text-sm text-slate-400 border border-slate-300">
                     Нет данных
                   </td>
                 </tr>
               ) : (
                 <>
-                  {nomenclature.map(item => {
+                  {nomenclature.map((item, rowIndex) => {
                     const totalQuantity = calculateTotalQuantity(item.id);
                     const totalValue = totalQuantity * item.currentPrice;
+                    const rowBg = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                     
                     return (
-                      <tr key={item.id}>
-                        <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10 hover:bg-blue-50 transition-colors">{item.name}</td>
-                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[200px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.category}</td>
-                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.unit}</td>
-                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[420px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
-                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[540px] bg-white z-5 hover:bg-blue-50 transition-colors">{totalQuantity}</td>
-                        {activeEmployees.map(emp => {
+                      <tr key={item.id} className={rowBg}>
+                        <td className={`px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 ${rowBg} z-10 hover:bg-blue-50 transition-colors`}>{item.name}</td>
+                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[200px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.category}</td>
+                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[320px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.unit}</td>
+                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[420px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
+                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[540px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{totalQuantity}</td>
+                        {allEmployees.map((emp: gs.Employee) => {
                           const balance = calculateBalance(emp.id, item.id);
                           return (
-                            <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 hover:bg-blue-50 transition-colors ${balance > 0 ? 'text-slate-800' : balance < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                            <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 ${rowBg} hover:bg-blue-50 transition-colors ${balance > 0 ? 'text-slate-800' : balance < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                               {balance}
                             </td>
                           );
                         })}
-                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-50 sticky right-0 z-5 hover:bg-blue-100 transition-colors ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-100 sticky right-0 z-5 hover:bg-blue-100 transition-colors ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {totalValue.toLocaleString('ru-RU')} ₽
                         </td>
                       </tr>
                     );
                   })}
-                  <tr className="bg-slate-100 font-bold">
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10">ИТОГО по сотрудникам</td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-100 z-5"></td>
-                    {activeEmployees.map(emp => {
+                  <tr className="bg-slate-200 font-bold">
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-200 z-10">ИТОГО по сотрудникам</td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-200 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-200 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-200 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-200 z-5"></td>
+                    {allEmployees.map((emp: gs.Employee) => {
                       const employeeTotal = calculateEmployeeTotal(emp.id);
                       return (
-                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-slate-200 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {employeeTotal.toLocaleString('ru-RU')} ₽
                         </td>
                       );
                     })}
-                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-300 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                       {calculateGrandTotal().toLocaleString('ru-RU')} ₽
                     </td>
                   </tr>
