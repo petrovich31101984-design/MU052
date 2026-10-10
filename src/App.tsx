@@ -1656,31 +1656,36 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   // Получаем всех сотрудников, кроме уволенных (включая Неактивен, Отпуск и т.д.)
   const allEmployees = employees.filter(e => e.status !== 'Уволен');
 
-  // Отладочная информация - ищем сотрудника Стадник
-  const stadnikEmployee = allEmployees.find((emp: gs.Employee) => emp.fullName.includes('Стадник'));
-  if (stadnikEmployee) {
-    const stadnikArrivals = arrivals.filter(a => a.employeeId === stadnikEmployee.id);
-    const stadnikExpenseSheets = expenseSheets.filter(s => s.employeeId === stadnikEmployee.id);
-    
-    console.log('🔍 Данные для Стадник:', {
-      employeeId: stadnikEmployee.id,
-      employeeName: stadnikEmployee.fullName,
-      totalArrivals: stadnikArrivals.length,
-      arrivals: stadnikArrivals.map(a => ({
-        id: a.id,
-        amount: a.amount,
-        archived: a.archived,
-        date: a.date
-      })),
-      totalExpenseSheets: stadnikExpenseSheets.length,
-      expenseSheets: stadnikExpenseSheets.map(s => ({
-        id: s.id,
-        totalAmount: s.totalAmount,
-        archived: s.archived,
-        date: s.date
-      }))
-    });
-  }
+  // Отладочная информация - выводим все приходы
+  console.log('📊 ВСЕ ПРИХОДЫ:', arrivals.map(a => ({
+    id: a.id,
+    employeeId: a.employeeId,
+    employeeName: a.employeeName,
+    amount: a.amount,
+    archived: a.archived,
+    items: a.items,
+    itemsType: typeof a.items,
+    isArray: Array.isArray(a.items),
+    itemsLength: Array.isArray(a.items) ? a.items.length : 'N/A'
+  })));
+  
+  console.log('👥 ВСЕ СОТРУДНИКИ:', allEmployees.map(e => ({
+    id: e.id,
+    fullName: e.fullName,
+    status: e.status
+  })));
+  
+  // Проверяем приходы для каждого сотрудника
+  allEmployees.forEach((emp: gs.Employee) => {
+    const empArrivals = arrivals.filter(a => a.employeeId === emp.id && a.archived !== true);
+    console.log(`📥 Приходы для ${emp.fullName} (${emp.id}):`, empArrivals.length, empArrivals.map(a => ({
+      id: a.id,
+      amount: a.amount,
+      items: a.items,
+      itemsType: typeof a.items,
+      isArray: Array.isArray(a.items)
+    })));
+  });
 
   // Функция для расчёта остатка по сотруднику и номенклатуре
   const calculateBalance = (employeeId: string, nomenclatureId: string): number => {
@@ -1690,13 +1695,27 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       // Проверяем, что запись не архивирована и существует в базе
       if (arrival.employeeId === employeeId && 
           arrival.archived !== true && 
-          arrival.id && 
-          arrival.items) {
-        arrival.items.forEach(item => {
-          if (item.nomenclatureId === nomenclatureId) {
-            totalArrival += item.quantity;
+          arrival.id) {
+        // Проверяем, что items существует и является массивом
+        let items = arrival.items;
+        
+        // Если items - строка, пытаемся распарсить
+        if (typeof items === 'string') {
+          try {
+            items = JSON.parse(items);
+          } catch (e) {
+            console.warn('Не удалось распарсить items для прихода:', arrival.id, items);
+            items = [];
           }
-        });
+        }
+        
+        if (Array.isArray(items) && items.length > 0) {
+          items.forEach((item: any) => {
+            if (item.nomenclatureId === nomenclatureId) {
+              totalArrival += Number(item.quantity) || 0;
+            }
+          });
+        }
       }
     });
 
@@ -1705,13 +1724,27 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
     expenseSheets.forEach(sheet => {
       if (sheet.employeeId === employeeId && 
           sheet.archived !== true && 
-          sheet.id && 
-          sheet.items) {
-        sheet.items.forEach(item => {
-          if (item.nomenclatureId === nomenclatureId) {
-            totalExpense += item.quantity;
+          sheet.id) {
+        // Проверяем, что items существует и является массивом
+        let items = sheet.items;
+        
+        // Если items - строка, пытаемся распарсить
+        if (typeof items === 'string') {
+          try {
+            items = JSON.parse(items);
+          } catch (e) {
+            console.warn('Не удалось распарсить items для расхода:', sheet.id, items);
+            items = [];
           }
-        });
+        }
+        
+        if (Array.isArray(items) && items.length > 0) {
+          items.forEach((item: any) => {
+            if (item.nomenclatureId === nomenclatureId) {
+              totalExpense += Number(item.quantity) || 0;
+            }
+          });
+        }
       }
     });
 

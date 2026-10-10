@@ -306,20 +306,45 @@ export async function getNomenclature(): Promise<Nomenclature[]> {
 
 export async function getArrivals(): Promise<Arrival[]> {
   const data = await fetchData('getArrivals');
-  return data.map((row: any) => ({
-    id: row['ID'] || '',
-    employeeId: row['Сотрудник_ID'] || '',
-    date: row['Дата'] || '',
-    month: row['Месяц'] || '',
-    amount: parseFloat(row['Сумма (₽)'] || '0'),
-    shifts: parseInt(row['Количество смен'] || '0'),
-    addedBy: row['Кем внесено'] || '',
-    type: row['Тип'] || 'Плановый',
-    comment: row['Комментарий'] || '',
-    items: row.items || [],
-    archived: row['Архив'] === 'ДА',
-    employeeName: row['Сотрудник'] || '',
-  }));
+  
+  // Отладка: выводим сырые данные из Google Sheets
+  console.log('📥 СЫРЫЕ ДАННЫЕ ПРИХОДОВ из Google Sheets:', data);
+  
+  return data.map((row: any) => {
+    // Пытаемся получить items из разных возможных полей
+    let items = row.items || row['Позиции'] || row['Items'] || [];
+    
+    // Если items - строка, пытаемся распарсить
+    if (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch (e) {
+        console.warn('Не удалось распарсить items для прихода:', row['ID'], items);
+        items = [];
+      }
+    }
+    
+    // Убеждаемся, что items - массив
+    if (!Array.isArray(items)) {
+      console.warn('items не является массивом для прихода:', row['ID'], items);
+      items = [];
+    }
+    
+    return {
+      id: row['ID'] || '',
+      employeeId: row['Сотрудник_ID'] || '',
+      date: row['Дата'] || '',
+      month: row['Месяц'] || '',
+      amount: parseFloat(row['Сумма (₽)'] || '0'),
+      shifts: parseInt(row['Количество смен'] || '0'),
+      addedBy: row['Кем внесено'] || '',
+      type: row['Тип'] || 'Плановый',
+      comment: row['Комментарий'] || '',
+      items: items,
+      archived: row['Архив'] === 'ДА',
+      employeeName: row['Сотрудник'] || '',
+    };
+  });
 }
 
 export async function getExpenses(): Promise<Expense[]> {
