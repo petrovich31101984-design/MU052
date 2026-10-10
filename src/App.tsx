@@ -1999,3 +1999,480 @@ function NomenclaturePage({ data }: {  ReturnType<typeof useData> }) {
     const matchCat = catFilter === 'all' || n.category === catFilter;
     return matchSearch && matchCat;
   });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-800">Номенклатура</h2>
+        <p className="text-slate-500 text-sm mt-1">Всего позиций: {nomenclature.length}</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+          <div className="text-2xl font-bold text-red-600">{nomenclature.filter(n => n.category === 'ЛС ПКУ').length}</div>
+          <div className="text-xs text-slate-500">ЛС ПКУ</div>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+          <div className="text-2xl font-bold text-green-600">{nomenclature.filter(n => n.category === 'ЛС').length}</div>
+          <div className="text-xs text-slate-500">ЛС</div>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+          <div className="text-2xl font-bold text-blue-600">{nomenclature.filter(n => n.category === 'Расходный материал').length}</div>
+          <div className="text-xs text-slate-500 uppercase">Расходных материалов</div>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+          <div className="text-2xl font-bold text-purple-600">{nomenclature.filter(n => n.category === 'Оборудование').length}</div>
+          <div className="text-xs text-slate-500 uppercase">Оборудования</div>
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <input type="text" placeholder="Поиск..." value={search} onChange={e => setSearch(e.target.value)}
+          className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm" />
+        <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 shadow-sm">
+          <option value="all">Все категории</option>
+          <option value="ЛС ПКУ">💉 ЛС ПКУ</option>
+          <option value="ЛС">💊 ЛС</option>
+          <option value="Расходный материал">🩹 Расходных материалов</option>
+          <option value="Оборудование">🩺 Оборудования</option>
+        </select>
+        <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-sm transition-colors">
+          + Добавить
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-200 text-left bg-slate-50">
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Название</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Категория</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Ед. изм.</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Производитель</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Кол-во в упаковке</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Цена за упаковку (₽)</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Цена за единицу (₽)</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(item => (
+              <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="px-5 py-3">
+                  <div 
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                    onClick={() => setViewingItem(item)}
+                  >
+                    {item.name}
+                  </div>
+                </td>
+                <td className="px-5 py-3">
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    item.category === 'ЛС ПКУ' ? 'bg-red-100 text-red-700' :
+                    item.category === 'ЛС' ? 'bg-green-100 text-green-700' :
+                    item.category === 'Расходный материал' ? 'bg-blue-100 text-blue-700' :
+                    item.category === 'Оборудование' ? 'bg-purple-100 text-purple-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>{item.category}</span>
+                </td>
+                <td className="px-5 py-3 text-sm text-slate-700">{item.unit}</td>
+                <td className="px-5 py-3 text-sm text-slate-700">{item.manufacturer || '-'}</td>
+                <td className="px-5 py-3 text-sm font-semibold text-slate-800">{item.packageQuantity || 1}</td>
+                <td className="px-5 py-3 text-sm font-semibold text-emerald-600">
+                  {(item.currentPrice * (item.packageQuantity || 1)).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+                </td>
+                <td className="px-5 py-3 text-sm font-semibold text-blue-600">
+                  {item.currentPrice.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+                </td>
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="text-blue-600 hover:text-blue-800 text-lg"
+                      title="✍️ Редактировать"
+                    >
+                      ✍️
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)}
+                      className="text-red-600 hover:text-red-800 text-lg"
+                      title="❌ Удалить"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && (
+          <div className="p-8 text-center text-slate-500">
+            <p>Номенклатура пуста</p>
+          </div>
+        )}
+      </div>
+
+      {showAddModal && (
+        <AddNomenclatureModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={async (item: gs.Nomenclature) => {
+            setShowAddModal(false);
+            setNomenclature([...nomenclature, item]);
+            gs.addNomenclature(item).catch(err => {
+              console.error('Ошибка добавления номенклатуры:', err);
+              alert('Ошибка при добавлении номенклатуры. Попробуйте ещё раз.');
+            });
+          }}
+        />
+      )}
+
+      {editingItem && (
+        <EditNomenclatureModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={async (updatedItem: gs.Nomenclature) => {
+            setEditingItem(null);
+            setNomenclature(nomenclature.map(n => n.id === updatedItem.id ? updatedItem : n));
+            gs.updateNomenclature(updatedItem.id, updatedItem).catch((err: Error) => {
+              console.error('Ошибка обновления номенклатуры:', err);
+              alert('Ошибка при сохранении изменений. Попробуйте ещё раз.');
+            });
+          }}
+        />
+      )}
+
+      {viewingItem && (
+        <ViewNomenclatureCardModal
+          item={viewingItem}
+          onClose={() => setViewingItem(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============ МОДАЛЬНОЕ ОКНО ПРОСМОТРА КАРТОЧКИ НОМЕНКЛАТУРЫ ============
+function ViewNomenclatureCardModal({
+  item,
+  onClose
+}: {
+  item: gs.Nomenclature;
+  onClose: () => void;
+}) {
+  const [priceHistory, setPriceHistory] = useState<gs.PriceHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    const loadPriceHistory = async () => {
+      setLoadingHistory(true);
+      try {
+        const history = await gs.getPriceHistory(item.id);
+        setPriceHistory(history);
+      } catch (err) {
+        console.error('Ошибка загрузки истории цен:', err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    loadPriceHistory();
+  }, [item.id]);
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+          <h3 className="text-lg font-bold text-slate-800">📋 Карточка позиции</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+        </div>
+        <div className="p-6 space-y-4">
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Наименование</label>
+                <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold">
+                  {item.name}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-slate-600 mb-1 block">Категория</label>
+                  <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      item.category === 'ЛС ПКУ' ? 'bg-red-100 text-red-700' :
+                      item.category === 'ЛС' ? 'bg-green-100 text-green-700' :
+                      item.category === 'Расходный материал' ? 'bg-blue-100 text-blue-700' :
+                      item.category === 'Оборудование' ? 'bg-purple-100 text-purple-700' :
+                      'bg-slate-100 text-slate-700'
+                    }`}>{item.category}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-slate-600 mb-1 block">Единица измерения</label>
+                  <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
+                    {item.unit}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Производитель</label>
+                <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
+                  {item.manufacturer || 'Не указан'}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Количество в упаковке</label>
+                <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold">
+                  {item.packageQuantity || 1}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-slate-600 mb-1 block">Цена за упаковку</label>
+                  <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-emerald-600 font-semibold">
+                    {(item.currentPrice * (item.packageQuantity || 1)).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-slate-600 mb-1 block">Цена за единицу</label>
+                  <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-blue-600 font-semibold">
+                    {item.currentPrice.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+                  </div>
+                </div>
+              </div>
+
+              {/* История изменений цен */}
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3">📊 Изменение цены</h4>
+                {loadingHistory ? (
+                  <div className="text-center py-4 text-slate-500">Загрузка истории...</div>
+                ) : priceHistory.length === 0 ? (
+                  <div className="text-center py-4 text-slate-400 text-sm">История изменений отсутствует</div>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {priceHistory.map((record, index) => (
+                      <div key={record.id || index} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-slate-800">
+                            {record.price.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {new Date(record.date).toLocaleDateString('ru-RU')} • {record.changedBy}
+                          </div>
+                        </div>
+                        {index === 0 && (
+                          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-semibold">
+                            Текущая
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-200 flex justify-end">
+              <button onClick={onClose} className="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg text-white font-medium">
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+}
+
+// ============ ПРИХОД К СОТРУДНИКУ ============
+function ArrivalPage({ data }: {  ReturnType<typeof useData> }) {
+  const { employees, nomenclature, arrivals, setArrivals, refresh } = data;
+  const [showAddArrival, setShowAddArrival] = useState(false);
+  const [editingArrival, setEditingArrival] = useState<gs.Arrival | null>(null);
+  const [viewingArrival, setViewingArrival] = useState<gs.Arrival | null>(null);
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+  const handleAddArrival = async (form: any) => {
+    setShowAddArrival(false);
+    const newArrival = {
+      id: `ARR-${Date.now()}`,
+      ...form,
+      date: form.date,
+      month: selectedMonth,
+      addedBy: 'Руководитель',
+      employeeName: form.employeeName || '',
+    };
+    setArrivals([...arrivals, newArrival]);
+    gs.addArrival(newArrival).catch(err => {
+      console.error('Ошибка добавления прихода:', err);
+      alert('Ошибка при добавлении прихода. Попробуйте ещё раз.');
+    });
+  };
+
+  const generateMonthOptions = () => {
+    const months = [];
+    const current = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(current.getFullYear(), current.getMonth() - i, 1);
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+      months.push({ value: monthStr, label: monthName });
+    }
+    return months;
+  };
+
+  const filteredArrivals = arrivals.filter(a => a.month === selectedMonth);
+  const totalAmount = filteredArrivals.reduce((s, a) => s + a.amount, 0);
+  const selectedMonthName = new Date(selectedMonth + '-01').toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+
+  const handleEditArrival = async (form: any) => {
+    if (!editingArrival) return;
+    setEditingArrival(null);
+    
+    const updatedArrival = {
+      ...editingArrival,
+      ...form,
+      employeeName: form.employeeName || editingArrival.employeeName || '',
+    };
+    
+    setArrivals(arrivals.map(a => a.id === editingArrival.id ? updatedArrival : a));
+    gs.updateArrival(editingArrival.id, updatedArrival).catch(err => {
+      console.error('Ошибка обновления прихода:', err);
+      alert('Ошибка при обновлении прихода. Попробуйте ещё раз.');
+    });
+  };
+
+  const handleDeleteArrival = async (id: string) => {
+    if (!confirm('Удалить эту карту прихода?')) return;
+    setArrivals(arrivals.filter(a => a.id !== id));
+    gs.deleteArrival(id).catch(err => {
+      console.error('Ошибка удаления прихода:', err);
+      alert('Ошибка при удалении прихода. Попробуйте ещё раз.');
+      refresh();
+    });
+  };
+
+  const handleArchiveArrival = async (id: string) => {
+    if (!confirm('Отправить карту прихода в архив?')) return;
+    setArrivals(arrivals.map(a => a.id === id ? { ...a, archived: true } : a));
+    gs.archiveArrival(id).catch(err => {
+      console.error('Ошибка архивирования прихода:', err);
+      alert('Ошибка при архивировании прихода. Попробуйте ещё раз.');
+      refresh();
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">📥 Приход к сотруднику</h2>
+          <p className="text-slate-500 text-sm mt-1">Управление поступлениями</p>
+        </div>
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        >
+          {generateMonthOptions().map(month => (
+            <option key={month.value} value={month.value}>
+              {month.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-slate-600 py-2">
+          ПРИХОД ЗА {selectedMonthName.toUpperCase()}: <span className="text-emerald-600 font-bold">
+            {totalAmount.toLocaleString('ru-RU')} ₽
+          </span>
+        </div>
+        <button onClick={() => setShowAddArrival(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-sm font-medium shadow-sm">+ Создать карту прихода</button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-200 text-left bg-slate-50">
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Дата</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Сотрудник</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase">Тип</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase text-right">Сумма (₽)</th>
+              <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase text-center">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredArrivals.sort((a, b) => b.date.localeCompare(a.date)).map(arr => {
+              return (
+                <tr key={arr.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-5 py-3 text-sm text-slate-700">
+                    {new Date(arr.date).toLocaleDateString('ru-RU')}
+                  </td>
+                  <td 
+                    className="px-5 py-3 text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                    onClick={() => setViewingArrival(arr)}
+                  >
+                    {arr.employeeName || arr.employeeId}
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-1 rounded-full text-xs ${arr.type === 'Плановый' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{arr.type}</span>
+                  </td>
+                  <td className="px-5 py-3 text-right text-sm font-semibold text-emerald-600">{arr.amount.toLocaleString('ru-RU')} ₽</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => setEditingArrival(arr)}
+                        className="text-blue-600 hover:text-blue-800 text-lg"
+                        title="Редактировать"
+                      >
+                        ✍️
+                      </button>
+                      <button 
+                        onClick={() => handleArchiveArrival(arr.id)}
+                        className="text-orange-600 hover:text-orange-800 text-lg"
+                        title="Отправить в архив"
+                      >
+                        📦
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteArrival(arr.id)}
+                        className="text-red-600 hover:text-red-800 text-lg"
+                        title="Удалить"
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {filteredArrivals.length === 0 && (
+          <div className="p-8 text-center text-slate-500"><p>Нет записей о приходе за {selectedMonthName}</p></div>
+        )}
+      </div>
+
+      {showAddArrival && <ArrivalCardModal 
+        employees={employees.filter(e => e.status !== 'Уволен')} 
+        nomenclature={nomenclature}
+        onClose={() => setShowAddArrival(false)} 
+        onAdd={handleAddArrival} 
+      />}
+
+      {editingArrival && <ArrivalCardModal 
+        employees={employees.filter(e => e.status !== 'Уволен')} 
+        nomenclature={nomenclature}
+        initialData={editingArrival}
+        onClose={() => setEditingArrival(null)} 
+        onAdd={handleEditArrival} 
+      />}
+
+      {viewingArrival && <ViewArrivalModal
+        arrival={viewingArrival}
+        employees={employees}
+        nomenclature={nomenclature}
+        onClose={() => setViewingArrival(null)}
+      />}
+    </div>
+  );
+}
