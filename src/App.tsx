@@ -1862,8 +1862,8 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
 
       {/* Тело */}
       <div className="bg-white p-6">
-        <div className="overflow-auto max-h-[calc(100vh-300px)] border border-slate-200 rounded-lg relative">
-          <table className="w-full border-collapse" style={{ borderSpacing: 0 }}>
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] border border-slate-200 rounded-lg relative">
+          <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '200px' }}>Номенклатура</th>
@@ -1894,47 +1894,46 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                 </tr>
               ) : (
                 <>
-                  {nomenclature.map((item, rowIndex) => {
+                  {nomenclature.map((item) => {
                     const totalQuantity = calculateTotalQuantity(item.id);
                     const totalValue = totalQuantity * item.currentPrice;
-                    const rowBg = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                     
                     return (
-                      <tr key={item.id} className={rowBg}>
-                        <td className={`px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 ${rowBg} z-10 hover:bg-blue-50 transition-colors`}>{item.name}</td>
-                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[200px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.category}</td>
-                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[320px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.unit}</td>
-                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[420px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
-                        <td className={`px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[540px] ${rowBg} z-5 hover:bg-blue-50 transition-colors`}>{totalQuantity}</td>
+                      <tr key={item.id} className="bg-white hover:bg-blue-50 transition-colors">
+                        <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10">{item.name}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[200px] bg-white z-5">{item.category}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5">{item.unit}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[420px] bg-white z-5">{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[540px] bg-white z-5">{totalQuantity}</td>
                         {allEmployees.map((emp: gs.Employee) => {
                           const balance = calculateBalance(emp.id, item.id);
                           return (
-                            <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 ${rowBg} hover:bg-blue-50 transition-colors ${balance > 0 ? 'text-slate-800' : balance < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                            <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-white ${balance > 0 ? 'text-slate-800' : balance < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                               {balance}
                             </td>
                           );
                         })}
-                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-100 sticky right-0 z-5 hover:bg-blue-100 transition-colors ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-50 sticky right-0 z-5 ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {totalValue.toLocaleString('ru-RU')} ₽
                         </td>
                       </tr>
                     );
                   })}
-                  <tr className="bg-slate-200 font-bold">
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-200 z-10">ИТОГО по сотрудникам</td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-200 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-200 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-200 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-200 z-5"></td>
+                  <tr className="bg-slate-100 font-bold">
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10">ИТОГО по сотрудникам</td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-100 z-5"></td>
                     {allEmployees.map((emp: gs.Employee) => {
                       const employeeTotal = calculateEmployeeTotal(emp.id);
                       return (
-                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-slate-200 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {employeeTotal.toLocaleString('ru-RU')} ₽
                         </td>
                       );
                     })}
-                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-300 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-200 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                       {calculateGrandTotal().toLocaleString('ru-RU')} ₽
                     </td>
                   </tr>
