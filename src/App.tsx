@@ -1882,7 +1882,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                     </th>
                   );
                 })}
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200 sticky right-0 z-20" style={{ minWidth: '120px' }}>Итого</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100 sticky right-0 z-20" style={{ minWidth: '120px' }}>Итого</th>
               </tr>
             </thead>
             <tbody>
@@ -1913,7 +1913,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                             </td>
                           );
                         })}
-                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-50 sticky right-0 z-5 ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-white sticky right-0 z-5 ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {totalValue.toLocaleString('ru-RU')} ₽
                         </td>
                       </tr>
@@ -1933,7 +1933,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                         </td>
                       );
                     })}
-                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-200 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
                       {calculateGrandTotal().toLocaleString('ru-RU')} ₽
                     </td>
                   </tr>
