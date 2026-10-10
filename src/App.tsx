@@ -1500,3 +1500,502 @@ function ArchivePage({ data }: {  ReturnType<typeof useData> }) {
                                 </div>
                               );
                             })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExpensePage({ data }: {  ReturnType<typeof useData> }) {
+  const { employees, expenseSheets, setExpenseSheets, nomenclature } = data;
+  const [editingSheet, setEditingSheet] = useState<gs.ExpenseSheet | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    // По умолчанию показываем предыдущий месяц
+    const now = new Date();
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // Фильтрация по месяцу (для отображения)
+  const filteredSheets = expenseSheets.filter(s => s.month === selectedMonth && !s.archived);
+
+  // Все листы за месяц (включая архивированные) для расчёта статистики
+  const allSheetsForMonth = expenseSheets.filter(s => s.month === selectedMonth);
+
+  // Расчёт статистики за выбранный месяц (включая архивированные)
+  const totalExpense = allSheetsForMonth.reduce((sum, s) => sum + s.totalAmount, 0);
+  const sheetsCount = allSheetsForMonth.length;
+  const exceededLimit = allSheetsForMonth.filter(s => {
+    if (s.therapyCost === 0) return false;
+    const limit = (s.totalAmount * 100) / s.therapyCost;
+    return limit > 5 || limit < 2.5; // Лимит вне диапазона 2.5% - 5%
+  }).length;
+
+  // Генерация списка месяцев
+  const generateMonthOptions = () => {
+    const months = [];
+    const current = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(current.getFullYear(), current.getMonth() - i, 1);
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+      months.push({ value: monthStr, label: monthName });
+    }
+    return months;
+  };
+
+  // Архивирование листа расхода
+  const handleArchiveSheet = async (id: string) => {
+    if (!confirm('Отправить лист расхода в архив?')) return;
+    setExpenseSheets(expenseSheets.map(s => s.id === id ? { ...s, archived: true } : s));
+    try {
+      await gs.archiveExpenseSheet(id);
+    } catch (err) {
+      console.error('Ошибка архивирования:', err);
+      alert('Ошибка при архивировании. Попробуйте ещё раз.');
+    }
+  };
+
+  // Редактирование листа расхода
+  const handleEditSheet = (sheet: gs.ExpenseSheet) => {
+    setEditingSheet(sheet);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">📤 Расход у сотрудника</h2>
+          <p className="text-slate-500 text-sm mt-1">Листы расхода</p>
+        </div>
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        >
+          {generateMonthOptions().map(month => (
+            <option key={month.value} value={month.value}>
+              {month.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Карточки статистики */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[140px]">
+          <div className="text-xs text-slate-500 uppercase mb-2">ОБЩАЯ СУММА РАСХОДА ЗА МЕСЯЦ</div>
+          <div className="text-2xl font-bold text-emerald-600 min-h-[40px] flex items-center">{totalExpense.toLocaleString('ru-RU')} ₽</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">{new Date(selectedMonth + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
+        </div>
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[140px]">
+          <div className="text-xs text-slate-500 uppercase mb-2">ЛИСТОВ РАСХОДА ЗА МЕСЯЦ</div>
+          <div className="text-2xl font-bold text-blue-600 min-h-[40px] flex items-center">{sheetsCount}</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">{new Date(selectedMonth + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
+        </div>
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[140px]">
+          <div className="text-xs text-slate-500 uppercase mb-2">ЛИСТОВ С ОТКЛОНЕНИЕМ ОТ ЛИМИТА</div>
+          <div className="text-2xl font-bold text-red-600 min-h-[40px] flex items-center">{exceededLimit}</div>
+          <div className="text-xs text-slate-500 mt-2 uppercase">{new Date(selectedMonth + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
+        </div>
+      </div>
+
+      {/* Листы расхода */}
+      <div className="space-y-6">
+        {filteredSheets.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center text-slate-500 border border-slate-200">
+            <p>Нет листов расхода за выбранный месяц</p>
+          </div>
+        ) : (
+          filteredSheets.map(sheet => (
+            <ExpenseSheetView 
+              key={sheet.id} 
+              sheet={sheet} 
+              employees={employees}
+              onArchive={handleArchiveSheet}
+              onEdit={handleEditSheet}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Модальное окно редактирования */}
+      {editingSheet && (
+        <EditExpenseSheetModal
+          sheet={editingSheet}
+          employees={employees}
+          nomenclature={nomenclature}
+          onClose={() => setEditingSheet(null)}
+          onSave={(updatedSheet) => {
+            setExpenseSheets(expenseSheets.map(s => s.id === updatedSheet.id ? updatedSheet : s));
+            gs.updateExpenseSheet(updatedSheet.id, updatedSheet).catch(err => {
+              console.error('Ошибка обновления листа расхода:', err);
+              alert('Ошибка при обновлении листа расхода. Попробуйте ещё раз.');
+            });
+            setEditingSheet(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============ ОСТАТОК У СОТРУДНИКА ============
+function BalancePage({ data }: {  ReturnType<typeof useData> }) {
+  const { employees, nomenclature, arrivals, expenseSheets } = data;
+  
+  // Получаем всех сотрудников, кроме уволенных
+  const activeEmployees = employees.filter(e => e.status !== 'Уволен');
+
+  // Отладочная информация - ищем сотрудника Стадник
+  const stadnikEmployee = activeEmployees.find(emp => emp.fullName.includes('Стадник'));
+  if (stadnikEmployee) {
+    const stadnikArrivals = arrivals.filter(a => a.employeeId === stadnikEmployee.id);
+    const stadnikExpenseSheets = expenseSheets.filter(s => s.employeeId === stadnikEmployee.id);
+    
+    console.log('🔍 Данные для Стадник:', {
+      employeeId: stadnikEmployee.id,
+      employeeName: stadnikEmployee.fullName,
+      totalArrivals: stadnikArrivals.length,
+      arrivals: stadnikArrivals.map(a => ({
+        id: a.id,
+        amount: a.amount,
+        archived: a.archived,
+        date: a.date
+      })),
+      totalExpenseSheets: stadnikExpenseSheets.length,
+      expenseSheets: stadnikExpenseSheets.map(s => ({
+        id: s.id,
+        totalAmount: s.totalAmount,
+        archived: s.archived,
+        date: s.date
+      }))
+    });
+  }
+
+  // Функция для расчёта остатка по сотруднику и номенклатуре
+  const calculateBalance = (employeeId: string, nomenclatureId: string): number => {
+    // Считаем приходы (только неархивированные и существующие)
+    let totalArrival = 0;
+    arrivals.forEach(arrival => {
+      // Проверяем, что запись не архивирована и существует в базе
+      if (arrival.employeeId === employeeId && 
+          arrival.archived !== true && 
+          arrival.id && 
+          arrival.items) {
+        arrival.items.forEach(item => {
+          if (item.nomenclatureId === nomenclatureId) {
+            totalArrival += item.quantity;
+          }
+        });
+      }
+    });
+
+    // Считаем расходы (только неархивированные и существующие)
+    let totalExpense = 0;
+    expenseSheets.forEach(sheet => {
+      if (sheet.employeeId === employeeId && 
+          sheet.archived !== true && 
+          sheet.id && 
+          sheet.items) {
+        sheet.items.forEach(item => {
+          if (item.nomenclatureId === nomenclatureId) {
+            totalExpense += item.quantity;
+          }
+        });
+      }
+    });
+
+    return totalArrival - totalExpense;
+  };
+
+  // Функция для расчёта общего количества по номенклатуре
+  const calculateTotalQuantity = (nomenclatureId: string): number => {
+    let total = 0;
+    activeEmployees.forEach(emp => {
+      total += calculateBalance(emp.id, nomenclatureId);
+    });
+    return total;
+  };
+
+  // Функция для расчёта общей стоимости по сотруднику
+  const calculateEmployeeTotal = (employeeId: string): number => {
+    let total = 0;
+    nomenclature.forEach(item => {
+      const balance = calculateBalance(employeeId, item.id);
+      total += balance * item.currentPrice;
+    });
+    return total;
+  };
+
+  // Функция для расчёта общего итога
+  const calculateGrandTotal = (): number => {
+    let total = 0;
+    activeEmployees.forEach(emp => {
+      total += calculateEmployeeTotal(emp.id);
+    });
+    return total;
+  };
+
+  // Принудительное обновление данных
+  const handleForceRefresh = async () => {
+    console.log('🔄 Принудительное обновление данных...');
+    
+    // Очищаем кэш браузера
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      console.log('🗑️ Кэш браузера очищен');
+    }
+    
+    // Перезагружаем страницу полностью
+    window.location.reload();
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Шапка */}
+      <div className="bg-slate-100 px-6 py-4 shadow-md">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">🧰 Остаток у сотрудника</h2>
+            <p className="text-slate-600 mt-1">Просмотр остатков номенклатуры у сотрудников</p>
+          </div>
+          <button
+            onClick={handleForceRefresh}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm"
+          >
+            🔄 Обновить данные
+          </button>
+        </div>
+      </div>
+
+      {/* Тело */}
+      <div className="bg-white p-6">
+        <div className="overflow-auto max-h-[calc(100vh-300px)] border border-slate-200 rounded-lg relative">
+          <table className="w-full border-collapse" style={{ borderSpacing: 0 }}>
+            <thead className="sticky top-0 z-20">
+              <tr className="bg-slate-100">
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '200px' }}>Номенклатура</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[200px] bg-slate-100 z-20" style={{ minWidth: '120px' }}>Тип</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Ед. изм.</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[420px] bg-slate-100 z-20" style={{ minWidth: '120px' }}>Цена за единицу</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[540px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Количество</th>
+                {activeEmployees.map(emp => {
+                  const parts = emp.fullName.trim().split(' ');
+                  const lastName = parts[0] || '';
+                  const initials = parts.slice(1).map(p => p[0] + '.').join('');
+                  const formattedName = initials ? `${lastName} ${initials}` : lastName;
+                  return (
+                    <th key={emp.id} className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300" style={{ minWidth: '120px' }}>
+                      {formattedName}
+                    </th>
+                  );
+                })}
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200 sticky right-0 z-20" style={{ minWidth: '120px' }}>Итого</th>
+              </tr>
+            </thead>
+            <tbody>
+              {nomenclature.length === 0 ? (
+                <tr>
+                  <td colSpan={5 + activeEmployees.length + 1} className="px-3 py-8 text-center text-sm text-slate-400 border border-slate-300">
+                    Нет данных
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {nomenclature.map(item => {
+                    const totalQuantity = calculateTotalQuantity(item.id);
+                    const totalValue = totalQuantity * item.currentPrice;
+                    
+                    return (
+                      <tr key={item.id}>
+                        <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10 hover:bg-blue-50 transition-colors">{item.name}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[200px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.category}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.unit}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[420px] bg-white z-5 hover:bg-blue-50 transition-colors">{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[540px] bg-white z-5 hover:bg-blue-50 transition-colors">{totalQuantity}</td>
+                        {activeEmployees.map(emp => {
+                          const balance = calculateBalance(emp.id, item.id);
+                          return (
+                            <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 hover:bg-blue-50 transition-colors ${balance > 0 ? 'text-slate-800' : balance < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                              {balance}
+                            </td>
+                          );
+                        })}
+                        <td className={`px-3 py-2 text-sm font-semibold border border-slate-300 bg-slate-50 sticky right-0 z-5 hover:bg-blue-100 transition-colors ${totalValue > 0 ? 'text-emerald-600' : totalValue < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                          {totalValue.toLocaleString('ru-RU')} ₽
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-slate-100 font-bold">
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10">ИТОГО по сотрудникам</td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-100 z-5"></td>
+                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-100 z-5"></td>
+                    {activeEmployees.map(emp => {
+                      const employeeTotal = calculateEmployeeTotal(emp.id);
+                      return (
+                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                          {employeeTotal.toLocaleString('ru-RU')} ₽
+                        </td>
+                      );
+                    })}
+                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                      {calculateGrandTotal().toLocaleString('ru-RU')} ₽
+                    </td>
+                  </tr>
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ МОДАЛЬНОЕ ОКНО ПРОСМОТРА КАРТЫ ПРИХОДА ============
+function ViewArrivalModal({
+  arrival,
+  employees,
+  nomenclature,
+  onClose
+}: {
+  arrival: gs.Arrival;
+  employees: gs.Employee[];
+  nomenclature: gs.Nomenclature[];
+  onClose: () => void;
+}) {
+  const items = (arrival as any).items || [];
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-800">📋 Карта прихода</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Основная информация */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-slate-600 mb-1 block">Дата</label>
+              <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
+                {new Date(arrival.date).toLocaleDateString('ru-RU')}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-slate-600 mb-1 block">Сотрудник</label>
+              <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
+                {arrival.employeeName || arrival.employeeId}
+              </div>
+            </div>
+          </div>
+
+          {/* Позиции */}
+          {items.length > 0 && (
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              <div className="p-4 bg-slate-50 border-b border-slate-200">
+                <h4 className="text-sm font-semibold text-slate-700">Позиции прихода</h4>
+              </div>
+              <table className="w-full table-fixed">
+                <colgroup>
+                  <col style={{ width: '50%' }} />
+                  <col style={{ width: '120px' }} />
+                  <col style={{ width: '150px' }} />
+                  <col style={{ width: '150px' }} />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Наименование</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium text-slate-600 uppercase">Кол-во</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase">Цена за ед.</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase">Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item: any) => {
+                    const nom = nomenclature.find(n => n.id === item.nomenclatureId);
+                    return (
+                      <tr key={item.nomenclatureId} className="border-b border-slate-100">
+                        <td className="px-4 py-3 text-sm text-slate-800 truncate">{nom?.name}</td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-800">{item.quantity}</td>
+                        <td className="px-4 py-3 text-right text-sm text-slate-700">{item.price.toLocaleString('ru-RU')} ₽</td>
+                        <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-600">{item.total.toLocaleString('ru-RU')} ₽</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-50 font-bold">
+                    <td colSpan={3} className="px-4 py-3 text-right text-sm text-slate-800">ИТОГО:</td>
+                    <td className="px-4 py-3 text-right text-lg text-emerald-600">{arrival.amount.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          {items.length === 0 && (
+            <div className="text-center text-slate-500 py-8">
+              <p>Нет данных о позициях</p>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-slate-200 flex justify-end">
+          <button onClick={onClose} className="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg text-white font-medium">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ НОМЕНКЛАТУРА ============
+function NomenclaturePage({ data }: {  ReturnType<typeof useData> }) {
+  const { nomenclature, setNomenclature } = data;
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<gs.Nomenclature | null>(null);
+  const [viewingItem, setViewingItem] = useState<gs.Nomenclature | null>(null);
+
+  const handleEdit = (item: gs.Nomenclature) => {
+    setEditingItem(item);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Удалить эту позицию из номенклатуры?')) {
+      // Удаляем из локального состояния
+      setNomenclature(nomenclature.filter(n => n.id !== id));
+      
+      // Отправляем в Google Sheets в фоне
+      gs.deleteNomenclature(id).catch((err: Error) => {
+        console.error('Ошибка удаления номенклатуры:', err);
+        alert('Ошибка при удалении. Попробуйте ещё раз.');
+      });
+    }
+  };
+
+  const searchLower = String(search || '').toLowerCase().trim();
+  const filtered = nomenclature.filter(n => {
+    const name = String(n.name ?? '').toLowerCase();
+    const matchSearch = !searchLower || name.includes(searchLower);
+    const matchCat = catFilter === 'all' || n.category === catFilter;
+    return matchSearch && matchCat;
+  });
