@@ -2476,3 +2476,504 @@ function ArrivalPage({ data }: {  ReturnType<typeof useData> }) {
     </div>
   );
 }
+
+// ============ МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ЛИСТА РАСХОДА ============
+function EditExpenseSheetModal({
+  sheet,
+  employees,
+  nomenclature,
+  onClose,
+  onSave
+}: {
+  sheet: gs.ExpenseSheet;
+  employees: gs.Employee[];
+  nomenclature: gs.Nomenclature[];
+  onClose: () => void;
+  onSave: (sheet: gs.ExpenseSheet) => void;
+}) {
+  const [formData, setFormData] = useState({
+    date: sheet.date,
+    employeeId: sheet.employeeId,
+    patientName: sheet.patientName,
+    patientBirthDate: sheet.patientBirthDate,
+    callCategory: sheet.callCategory,
+    therapyName: sheet.therapyName,
+    therapyCost: sheet.therapyCost,
+    items: [...sheet.items]
+  });
+
+  const formatDateShort = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}.${month}.${year}`;
+  };
+
+  const totalAmount = formData.items.reduce((sum, item) => sum + item.total, 0);
+
+  const handleAddItem = () => {
+    setFormData({
+      ...formData,
+      items: [...formData.items, {
+        nomenclatureId: '',
+        name: '',
+        category: 'ЛС',
+        quantity: 1,
+        pricePerUnit: 0,
+        total: 0
+      }]
+    });
+  };
+
+  const handleUpdateItem = (index: number, field: string, value: any) => {
+    const newItems = [...formData.items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Пересчитываем сумму
+    if (field === 'quantity' || field === 'pricePerUnit') {
+      newItems[index].total = newItems[index].quantity * newItems[index].pricePerUnit;
+    }
+    
+    setFormData({ ...formData, items: newItems });
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setFormData({
+      ...formData,
+      items: formData.items.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleSubmit = () => {
+    const updatedSheet: gs.ExpenseSheet = {
+      ...sheet,
+      date: formData.date,
+      employeeId: formData.employeeId,
+      employeeName: employees.find(e => e.id === formData.employeeId)?.fullName || '',
+      patientName: formData.patientName,
+      patientBirthDate: formData.patientBirthDate,
+      callCategory: formData.callCategory,
+      therapyName: formData.therapyName,
+      therapyCost: formData.therapyCost,
+      items: formData.items,
+      totalAmount: totalAmount
+    };
+    onSave(updatedSheet);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-slate-100 px-6 py-4 flex justify-between items-center border-b border-slate-300">
+          <h2 className="text-xl font-bold text-slate-800">Редактирование листа расхода</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Основная информация */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Дата составления</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Сотрудник</label>
+              <select
+                value={formData.employeeId}
+                onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.fullName}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Пациент (ФИО)</label>
+              <input
+                type="text"
+                value={formData.patientName}
+                onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Дата рождения пациента</label>
+              <input
+                type="date"
+                value={formData.patientBirthDate}
+                onChange={(e) => setFormData({ ...formData, patientBirthDate: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Категория выезда</label>
+              <select
+                value={formData.callCategory}
+                onChange={(e) => setFormData({ ...formData, callCategory: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Первичный">Первичный</option>
+                <option value="Повторный">Повторный</option>
+                <option value="Экстренный">Экстренный</option>
+                <option value="Плановый">Плановый</option>
+                <option value="Курс">Курс</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Название терапии</label>
+              <input
+                type="text"
+                value={formData.therapyName}
+                onChange={(e) => setFormData({ ...formData, therapyName: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Стоимость терапии (₽)</label>
+              <input
+                type="number"
+                value={formData.therapyCost}
+                onChange={(e) => setFormData({ ...formData, therapyCost: Number(e.target.value) })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Препараты и расходники */}
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-semibold text-slate-800">Препараты и расходники</h3>
+              <button
+                onClick={handleAddItem}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+              >
+                + Добавить позицию
+              </button>
+            </div>
+            
+            <table className="w-full border-collapse">
+              <colgroup>
+                <col style={{ width: '35%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '8%' }} />
+              </colgroup>
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300">Название</th>
+                  <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300">Тип</th>
+                  <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300">Количество</th>
+                  <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300">Цена за единицу</th>
+                  <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300">Сумма</th>
+                  <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {formData.items.map((item, index) => (
+                  <tr key={index} className="border-b border-slate-200">
+                    <td className="px-3 py-2 border border-slate-300">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => handleUpdateItem(index, 'name', e.target.value)}
+                        className="w-full px-2 py-1 border border-slate-300 rounded text-sm"
+                      />
+                    </td>
+                    <td className="px-3 py-2 border border-slate-300">
+                      <select
+                        value={item.category}
+                        onChange={(e) => handleUpdateItem(index, 'category', e.target.value)}
+                        className="w-full px-2 py-1 border border-slate-300 rounded text-sm"
+                      >
+                        <option value="ЛС ПКУ">ЛС ПКУ</option>
+                        <option value="ЛС">ЛС</option>
+                        <option value="Расходный материал">Расходный материал</option>
+                        <option value="Оборудование">Оборудование</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2 border border-slate-300">
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleUpdateItem(index, 'quantity', Number(e.target.value))}
+                        className="w-full px-2 py-1 border border-slate-300 rounded text-sm text-center"
+                        min="1"
+                      />
+                    </td>
+                    <td className="px-3 py-2 border border-slate-300">
+                      <input
+                        type="number"
+                        value={item.pricePerUnit}
+                        onChange={(e) => handleUpdateItem(index, 'pricePerUnit', Number(e.target.value))}
+                        className="w-full px-2 py-1 border border-slate-300 rounded text-sm text-right"
+                        min="0"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-right text-sm font-semibold text-slate-800 border border-slate-300">
+                      {item.total.toLocaleString('ru-RU')} ₽
+                    </td>
+                    <td className="px-3 py-2 text-center border border-slate-300">
+                      <button
+                        onClick={() => handleRemoveItem(index)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-slate-300">
+                  <td className="px-3 py-2 text-left text-sm font-semibold text-slate-800">ИТОГО</td>
+                  <td colSpan={3}></td>
+                  <td className="px-3 py-2 text-right text-sm font-semibold text-blue-600">
+                    {totalAmount.toLocaleString('ru-RU')} ₽
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-3 border-t border-slate-300">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white text-sm rounded"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+          >
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ СОТРУДНИКИ ============
+function EmployeesPage({ data }: {  ReturnType<typeof useData> }) {
+  const { employees, setEmployees, arrivals, expenses, nomenclature } = data;
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<gs.Employee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<gs.Employee | null>(null);
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+
+
+  // Фильтруем сотрудников
+  const searchLower = search.toLowerCase().trim();
+  
+  // Сначала фильтруем по статусу и поиску (поиск по началу ФИО)
+  const matched = searchLower === '' 
+    ? employees.filter(e => e.status !== 'Уволен')
+    : employees.filter(e => {
+        if (e.status === 'Уволен') return false;
+        const fullName = String(e.fullName ?? '').toLowerCase().trim();
+        // Проверяем, начинается ли ФИО с введённых букв
+        return fullName.startsWith(searchLower);
+      });
+  
+  // Убираем дубликаты по ФИО — оставляем только первую запись с таким ФИО
+  const seen = new Set<string>();
+  const filtered = matched.filter(e => {
+    const fullName = String(e.fullName ?? '').trim().toLowerCase();
+    if (seen.has(fullName)) {
+      return false;
+    }
+    seen.add(fullName);
+    return true;
+  });
+
+  const getArrival = (empId: string) => arrivals.filter(a => a.employeeId === empId && a.month === currentMonth).reduce((s, a) => s + a.amount, 0);
+  const getExpenseValue = (empId: string) => expenses.filter(e => e.employeeId === empId && e.month === currentMonth).reduce((s, e) => {
+    const nom = nomenclature.find(n => n.id === e.nomenclatureId);
+    return s + (nom ? nom.currentPrice * e.quantity : 0);
+  }, 0);
+  const getCalls = (empId: string) => new Set(expenses.filter(e => e.employeeId === empId && e.month === currentMonth).map(e => e.callId)).size;
+
+  const handleAdd = (form: { fullName: string; personalNumber: string; password: string; position: string; phone: string }) => {
+    // Проверка на дубликат ПЕРЕД добавлением
+    const trimmedNumber = form.personalNumber.trim();
+    const existingEmployee = employees.find(e => {
+      const existingNumber = String(e.personalNumber ?? '').trim();
+      return existingNumber === trimmedNumber;
+    });
+    
+    if (existingEmployee) {
+      return false; // Возвращаем false, чтобы модальное окно показало ошибку
+    }
+    
+    setShowAdd(false); // Закрываем окно сразу
+    
+    // Создаём нового сотрудника
+    const newEmployee: gs.Employee = {
+      id: `EMP-${String(employees.length + 1).padStart(3, '0')}`,
+      personalNumber: form.personalNumber,
+      fullName: form.fullName,
+      password: form.password,
+      status: 'Неактивен',
+      position: form.position,
+      hireDate: new Date().toISOString().split('T')[0],
+      blocked: false,
+      phone: form.phone,
+      lastActivity: '',
+      note: '',
+      shiftOpen: false,
+    };
+    
+    // Добавляем в локальное состояние
+    setEmployees([...employees, newEmployee]);
+    
+    // Отправляем в Google Sheets в фоне
+    gs.addEmployee(newEmployee).catch(err => {
+      console.error('Ошибка добавления сотрудника:', err);
+      alert('Ошибка при добавлении сотрудника. Попробуйте ещё раз.');
+    });
+    
+    return true;
+  };
+
+  // ✏️ Редактирование данных сотрудника
+  const handleEdit = (emp: gs.Employee) => {
+    setEditingEmployee(emp);
+  };
+
+  // 🔒 Блокировка/разблокировка сотрудника
+  const handleToggleBlock = async (id: string, block: boolean) => {
+    if (confirm(block ? 'Заблокировать сотрудника?\n\nСотрудник не сможет войти в систему.' : 'Разблокировать сотрудника?')) {
+      // Обновляем локальное состояние
+      setEmployees(employees.map(e => e.id === id ? { ...e, blocked: block } : e));
+      
+      // Отправляем в Google Sheets в фоне
+      gs.updateEmployee(id, { blocked: block }).catch(err => {
+        console.error('Ошибка блокировки сотрудника:', err);
+        alert('Ошибка при блокировке сотрудника. Попробуйте ещё раз.');
+      });
+    }
+  };
+
+  // 🟢 Открытие/закрытие смены сотрудника
+  const handleToggleShift = async (id: string, open: boolean) => {
+    const emp = employees.find(e => e.id === id);
+    if (!emp) return;
+    
+    // Обновляем локальное состояние
+    const updatedEmployee = { ...emp, shiftOpen: open };
+    setEmployees(employees.map(e => e.id === id ? updatedEmployee : e));
+    
+    // Отправляем в Google Sheets в фоне
+    gs.updateEmployeeShift(id, open).catch(err => {
+      console.error('Ошибка изменения статуса смены:', err);
+      alert('Ошибка при изменении статуса смены. Попробуйте ещё раз.');
+    });
+  };
+
+  // 🚫 Увольнение — сотрудник уходит в архив, персональный номер освобождается
+  const handleFire = async (id: string) => {
+    const emp = employees.find(e => e.id === id);
+    if (confirm(`Уволить сотрудника "${emp?.fullName}"?\n\nСотрудник будет перемещён в архив.\nПерсональный номер "${emp?.personalNumber}" будет освобождён.`)) {
+      // Обновляем локальное состояние
+      setEmployees(employees.map(e => e.id === id ? { ...e, status: 'Уволен', personalNumber: '' } : e));
+      
+      // Отправляем в Google Sheets в фоне
+      gs.updateEmployee(id, { status: 'Уволен', personalNumber: '' }).catch(err => {
+        console.error('Ошибка увольнения сотрудника:', err);
+        alert('Ошибка при увольнении сотрудника. Попробуйте ещё раз.');
+      });
+    }
+  };
+
+  // 🗑️ Полное удаление из базы данных
+  const handleDelete = (id: string) => {
+    const emp = employees.find(e => e.id === id);
+    if (confirm(`УДАЛИТЬ сотрудника "${emp?.fullName}"?\n\n⚠️ Это действие нельзя отменить!\nСотрудник будет полностью удалён из базы данных.`)) {
+      // Оптимистичное обновление - сразу удаляем из локального состояния
+      data.setEmployees(employees.filter(e => e.id !== id));
+      
+      // Удаляем из Google Sheets в фоне (без ожидания)
+      gs.deleteEmployee(id).catch(err => {
+        console.error('Ошибка удаления сотрудника:', err);
+        alert('Ошибка при удалении сотрудника. Попробуйте ещё раз.');
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-3">
+        <input type="text" placeholder="Поиск по ФИО..." value={search} onChange={e => setSearch(e.target.value)}
+          className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm" />
+        <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-medium shadow-sm">+ Добавить сотрудника</button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        {search && (
+          <div className="px-5 py-3 bg-blue-50 border-b border-blue-200 text-sm text-blue-700">
+            Найдено сотрудников: <span className="font-bold">{filtered.length}</span>
+            {filtered.length === 0 && ' — попробуйте изменить запрос'}
+          </div>
+        )}
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+          <table className="w-full border-collapse">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-200 text-left bg-slate-50">
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase bg-slate-50">Персональный номер</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase bg-slate-50">Сотрудник (ФИО)</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase bg-slate-50">Статус</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase bg-slate-50">Последний вход</th>
+                <th className="px-5 py-3 text-xs font-medium text-slate-600 uppercase bg-slate-50">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((emp, index) => (
+                <tr key={`${emp.id}-${index}`} onClick={() => setSelectedEmployee(emp)} className="border-b border-slate-100 hover:bg-blue-50 hover:shadow-md transition-all duration-200 cursor-pointer">
+                  <td className="px-5 py-3 text-sm text-slate-700">{emp.personalNumber || '-'}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white bg-blue-500">
+                        {(emp.fullName || '').split(' ').slice(0, 2).map(n => n[0]).join('')}
+                      </div>
+                      <div className="text-sm font-medium text-slate-800">{emp.fullName || 'Без имени'}</div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {emp.blocked ? (
+                        <span className="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700">🔒 Заблокирован</span>
+                      ) : emp.shiftOpen ? (
+                        <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">🟢 Активен (смена открыта)</span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-600">⚪ Не активен (смена закрыта)</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-sm text-slate-600">
+                    {emp.lastActivity ? (
+                      <div className="flex flex-col">
+                        <span className="text-slate-800">
+                          {new Date(emp.lastActivity).toLocaleDateString('ru-RU')}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {new Date(emp.lastActivity).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 italic">Никогда</span>
+                    )}
