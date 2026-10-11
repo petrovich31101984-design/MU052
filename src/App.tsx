@@ -1847,7 +1847,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full">
       {/* Блок 1: Шапка */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
         <h2 className="text-2xl font-bold text-slate-800">🧰 Остаток у сотрудника</h2>
@@ -1855,8 +1855,8 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       </div>
 
       {/* Блок 2: Таблица остатков */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden max-w-full">
+        <div className="overflow-x-auto overflow-y-auto max-w-full" style={{ maxHeight: 'calc(100vh - 300px)' }}>
           <table className="border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
@@ -4032,7 +4032,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-80' : 'w-20'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 fixed h-full z-40 shadow-sm`}>
         <div className="p-4 border-b border-slate-200 flex items-center gap-3">
@@ -4069,7 +4069,7 @@ export default function App() {
       </aside>
 
       {/* Main */}
-      <div className={`flex-1 ${sidebarOpen ? 'ml-80' : 'ml-20'} transition-all duration-300`}>
+      <div className={`flex-1 ${sidebarOpen ? 'ml-80' : 'ml-20'} transition-all duration-300 max-w-full overflow-hidden`}>
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-600">
@@ -4086,7 +4086,7 @@ export default function App() {
             </div>
           </div>
         </header>
-        <main className="p-6 overflow-hidden">{renderPage()}</main>
+        <main className="p-6 overflow-hidden max-w-full">{renderPage()}</main>
       </div>
     </div>
   );
