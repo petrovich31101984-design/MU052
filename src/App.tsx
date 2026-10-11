@@ -1861,8 +1861,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       </div>
 
       {/* Тело */}
-      <div className="bg-white p-6 flex-1 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto h-full border border-slate-200 rounded-lg relative">
+      <div className="bg-white p-6 flex-1 flex flex-col overflow-hidden">
+        {/* Прокручиваемая область таблицы */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto border border-slate-200 rounded-lg relative">
           <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
@@ -1919,29 +1920,39 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                       </tr>
                     );
                   })}
-                  <tr className="bg-slate-100 font-bold">
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10">ИТОГО по сотрудникам</td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-100 z-5"></td>
-                    <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-100 z-5"></td>
-                    {allEmployees.map((emp: gs.Employee) => {
-                      const employeeTotal = calculateEmployeeTotal(emp.id);
-                      return (
-                        <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                          {employeeTotal.toLocaleString('ru-RU')} ₽
-                        </td>
-                      );
-                    })}
-                    <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 sticky right-0 z-5 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                      {calculateGrandTotal().toLocaleString('ru-RU')} ₽
-                    </td>
-                  </tr>
                 </>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Строка итогов - закреплена внизу, не прокручивается */}
+        {nomenclature.length > 0 && (
+          <div className="overflow-x-auto border border-slate-200 border-t-0 rounded-b-lg">
+            <table className="w-max border-collapse bg-slate-100" style={{ borderSpacing: 0 }}>
+              <tbody>
+                <tr className="bg-slate-100 font-bold">
+                  <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10" style={{ minWidth: '200px' }}>ИТОГО по сотрудникам</td>
+                  <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[200px] bg-slate-100 z-5" style={{ minWidth: '120px' }}></td>
+                  <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5" style={{ minWidth: '100px' }}></td>
+                  <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[420px] bg-slate-100 z-5" style={{ minWidth: '120px' }}></td>
+                  <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-[540px] bg-slate-100 z-5" style={{ minWidth: '100px' }}></td>
+                  {allEmployees.map((emp: gs.Employee) => {
+                    const employeeTotal = calculateEmployeeTotal(emp.id);
+                    return (
+                      <td key={emp.id} className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 ${employeeTotal > 0 ? 'text-emerald-600' : employeeTotal < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '120px' }}>
+                        {employeeTotal.toLocaleString('ru-RU')} ₽
+                      </td>
+                    );
+                  })}
+                  <td className={`px-3 py-2 text-sm border border-slate-300 bg-slate-100 sticky right-0 z-10 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '120px' }}>
+                    {calculateGrandTotal().toLocaleString('ru-RU')} ₽
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
