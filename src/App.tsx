@@ -165,11 +165,11 @@ function AuditPage({ data }: { data: ReturnType<typeof useData> }) {
                   <div className="text-sm text-slate-800">{log.userName}</div>
                   <div className="text-xs text-slate-500">{log.role}</div>
                 </td>
-                <td className="px-5 py-3"><span className="px-2 py-1 rounded bg-slate-100 text-xs text-slate-700">{log.sheet}</span></td>
+                <td className="px-5 py-3"><span className="text-xs text-slate-700">{log.sheet}</span></td>
                 <td className="px-5 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    log.action === 'Создание' ? 'bg-emerald-100 text-emerald-700' :
-                    log.action === 'Изменение' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                  <span className={`text-xs ${
+                    log.action === 'Создание' ? 'text-emerald-700' :
+                    log.action === 'Изменение' ? 'text-blue-700' : 'text-red-700'
                   }`}>{log.action}</span>
                 </td>
                 <td className="px-5 py-3 text-sm">
