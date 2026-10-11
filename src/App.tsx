@@ -4000,7 +4000,7 @@ function SetupPage() {
           </div>
         </div>
         <div className="mt-8 text-center">
-          <p className="text-xs text-slate-500">© {new Date().getFullYear()} АлкоСпас • Выездная наркологическая помощь</p>
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} АлкоСпас • Выездная медицинская помощь</p>
         </div>
       </div>
     </div>
