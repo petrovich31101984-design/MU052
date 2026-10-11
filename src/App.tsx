@@ -108,6 +108,15 @@ function AuditPage({ data }: { data: ReturnType<typeof useData> }) {
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}.${month}.${year}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -140,7 +149,7 @@ function AuditPage({ data }: { data: ReturnType<typeof useData> }) {
           <tbody>
             {filtered.map(log => (
               <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-5 py-3 text-sm text-slate-700 whitespace-nowrap">{log.date}</td>
+                <td className="px-5 py-3 text-sm text-slate-700 whitespace-nowrap">{formatDate(log.date)}</td>
                 <td className="px-5 py-3">
                   <div className="text-sm text-slate-800">{log.userName}</div>
                   <div className="text-xs text-slate-500">{log.role}</div>
