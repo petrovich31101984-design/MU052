@@ -339,7 +339,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
             {activeEmployees.map(emp => {
               const status = getEmployeeStatus(emp);
               return (
-                <button key={emp.id} onClick={() => setSelectedChat(emp.id)}
+                <button key={emp.id} onClick={() => setSelectedChat(selectedChat === emp.id ? '' : emp.id)}
                   className={`w-full p-4 flex items-center gap-3 text-left border-b border-slate-100 ${
                     selectedChat === emp.id ? 'bg-red-50 border-l-4 border-l-red-500' : 'hover:bg-slate-50'
                   }`}>
@@ -359,7 +359,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          {!selectedChat || !activeEmployees.find(e => e.id === selectedChat) ? (
+          {!selectedChat ? (
             <div className="flex-1 flex items-center justify-center bg-slate-50">
               <div className="text-center text-slate-500">
                 <div className="text-6xl mb-4">💬</div>
