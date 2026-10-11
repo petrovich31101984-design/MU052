@@ -1862,20 +1862,20 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
               <tr className="bg-slate-100">
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '220px' }}>Номенклатура</th>
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[220px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Ед. изм.</th>
-                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '110px' }}>Цена за ед.</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '110px' }}>Цена за ед.</th>
                 {allEmployees.map((emp: gs.Employee) => {
                   const parts = emp.fullName.trim().split(' ');
                   const lastName = parts[0] || '';
                   const initials = parts.slice(1).map((p: string) => p[0] + '.').join('');
                   const formattedName = initials ? `${lastName} ${initials}` : lastName;
                   return (
-                    <th key={emp.id} className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100" style={{ minWidth: '130px' }}>
+                    <th key={emp.id} className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100" style={{ minWidth: '130px' }}>
                       {formattedName}
                     </th>
                   );
                 })}
-                <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '110px' }}>Итого кол-во</th>
-                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '130px' }}>Итого сумма</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '110px' }}>Итого кол-во</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '130px' }}>Итого сумма</th>
               </tr>
             </thead>
             <tbody>
@@ -1895,19 +1895,19 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                       <tr key={item.id} className="bg-white hover:bg-blue-50 transition-colors">
                         <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10" style={{ minWidth: '220px' }}>{item.name}</td>
                         <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[220px] bg-white z-5" style={{ minWidth: '100px' }}>{item.unit}</td>
-                        <td className="px-3 py-2 text-sm text-right text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5" style={{ minWidth: '110px' }}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
+                        <td className="px-3 py-2 text-sm text-left text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5" style={{ minWidth: '110px' }}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
                         {allEmployees.map((emp: gs.Employee) => {
                           const balance = calculateBalance(emp.id, item.id);
                           return (
-                            <td key={emp.id} className={`px-3 py-2 text-sm text-center border border-slate-300 ${balance > 0 ? 'text-slate-800 font-medium bg-white' : balance < 0 ? 'text-red-600 font-medium bg-white' : 'text-slate-400 bg-white'}`} style={{ minWidth: '130px' }}>
+                            <td key={emp.id} className={`px-3 py-2 text-sm text-left border border-slate-300 ${balance > 0 ? 'text-slate-800 font-medium bg-white' : balance < 0 ? 'text-red-600 font-medium bg-white' : 'text-slate-400 bg-white'}`} style={{ minWidth: '130px' }}>
                               {balance}
                             </td>
                           );
                         })}
-                        <td className={`px-3 py-2 text-sm text-center font-semibold border border-slate-300 bg-slate-50 ${totalQty > 0 ? 'text-slate-800' : totalQty < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '110px' }}>
+                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 ${totalQty > 0 ? 'text-slate-800' : totalQty < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '110px' }}>
                           {totalQty}
                         </td>
-                        <td className={`px-3 py-2 text-sm text-right font-semibold border border-slate-300 bg-slate-50 ${totalSum > 0 ? 'text-emerald-600' : totalSum < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
+                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 ${totalSum > 0 ? 'text-emerald-600' : totalSum < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
                           {totalSum.toLocaleString('ru-RU')} ₽
                         </td>
                       </tr>
@@ -1922,15 +1922,15 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                     {allEmployees.map((emp: gs.Employee) => {
                       const empTotal = calculateEmployeeTotal(emp.id);
                       return (
-                        <td key={emp.id} className={`px-3 py-3 text-sm text-center border border-slate-300 bg-slate-100 ${empTotal > 0 ? 'text-emerald-600' : empTotal < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
+                        <td key={emp.id} className={`px-3 py-3 text-sm text-left border border-slate-300 bg-slate-100 ${empTotal > 0 ? 'text-emerald-600' : empTotal < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
                           {empTotal.toLocaleString('ru-RU')} ₽
                         </td>
                       );
                     })}
-                    <td className="px-3 py-3 text-sm text-center border border-slate-300 bg-slate-200 text-slate-800" style={{ minWidth: '110px' }}>
+                    <td className="px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 text-slate-800" style={{ minWidth: '110px' }}>
                       {nomenclature.reduce((sum, item) => sum + calculateTotalQuantity(item.id), 0)}
                     </td>
-                    <td className={`px-3 py-3 text-sm text-right border border-slate-300 bg-slate-200 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
+                    <td className={`px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
                       {calculateGrandTotal().toLocaleString('ru-RU')} ₽
                     </td>
                   </tr>
