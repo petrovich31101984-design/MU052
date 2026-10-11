@@ -235,7 +235,11 @@ function SettingsPage({ data }: { data: ReturnType<typeof useData> }) {
 // ============ ЧАТ ============
 function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
   const { chatMessages, employees, announcements } = data;
-  const [selectedChat, setSelectedChat] = useState<string>(employees[0]?.id || '');
+  
+  // Фильтруем сотрудников: исключаем уволенных
+  const activeEmployees = employees.filter(e => e.status !== 'Уволен');
+  
+  const [selectedChat, setSelectedChat] = useState<string>(activeEmployees[0]?.id || '');
   const [newMessage, setNewMessage] = useState('');
   const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
 
@@ -264,7 +268,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
-    const emp = employees.find(e => e.id === selectedChat);
+    const emp = activeEmployees.find(e => e.id === selectedChat);
     await gs.addChatMessage({
       id: `MSG-${Date.now()}`, fromId: 'MGR', fromName: 'Руководитель',
       toId: selectedChat, toName: emp?.fullName || '',
@@ -308,7 +312,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
             <h3 className="font-bold text-slate-800 text-sm">Диалоги</h3>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {employees.map(emp => {
+            {activeEmployees.map(emp => {
               const status = getEmployeeStatus(emp);
               return (
                 <button key={emp.id} onClick={() => setSelectedChat(emp.id)}
@@ -333,13 +337,13 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
         <div className="flex-1 flex flex-col">
           <div className="p-4 border-b border-slate-200 flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
-              {employees.find(e => e.id === selectedChat)?.fullName[0] || '?'}
+              {activeEmployees.find(e => e.id === selectedChat)?.fullName[0] || '?'}
             </div>
             <div>
               <div className="font-medium text-slate-800">
-                {employees.find(e => e.id === selectedChat) ? formatFullName(employees.find(e => e.id === selectedChat)!.fullName) : ''}
+                {activeEmployees.find(e => e.id === selectedChat) ? formatFullName(activeEmployees.find(e => e.id === selectedChat)!.fullName) : ''}
               </div>
-              <div className="text-xs text-slate-500">{employees.find(e => e.id === selectedChat)?.position}</div>
+              <div className="text-xs text-slate-500">{activeEmployees.find(e => e.id === selectedChat)?.position}</div>
             </div>
           </div>
 
