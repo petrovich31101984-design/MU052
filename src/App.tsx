@@ -359,7 +359,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          {!selectedChat ? (
+          {!selectedChat || !activeEmployees.find(e => e.id === selectedChat) ? (
             <div className="flex-1 flex items-center justify-center bg-slate-50">
               <div className="text-center text-slate-500">
                 <div className="text-6xl mb-4">💬</div>
