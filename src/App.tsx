@@ -1847,7 +1847,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-hidden">
       {/* Блок 1: Шапка */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
         <div className="flex justify-between items-center">
@@ -1865,9 +1865,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       </div>
 
       {/* Блок 2: Таблица */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden -mx-6 w-[calc(100%+3rem)]" style={{ height: 'calc(100vh - 250px)' }}>
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden w-full" style={{ height: 'calc(100vh - 250px)' }}>
         <div className="overflow-x-auto overflow-y-auto h-full w-full">
-          <table className="w-full border-collapse bg-white" style={{ borderSpacing: 0 }}>
+          <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '200px' }}>Номенклатура</th>
