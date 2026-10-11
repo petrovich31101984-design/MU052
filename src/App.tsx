@@ -4093,7 +4093,7 @@ export default function App() {
             </div>
           </div>
         </header>
-        <main className="p-6">{renderPage()}</main>
+        <main className="p-6 overflow-hidden">{renderPage()}</main>
       </div>
     </div>
   );
