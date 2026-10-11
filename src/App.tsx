@@ -3000,7 +3000,7 @@ function EmployeesPage({ data }: { data: ReturnType<typeof useData> }) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-88px)]">
+    <div className="flex flex-col h-[calc(100vh-228px)]">
       <div className="flex gap-3 flex-shrink-0">
         <input type="text" placeholder="Поиск по ФИО..." value={search} onChange={e => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm" />
