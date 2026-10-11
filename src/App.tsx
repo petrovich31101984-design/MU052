@@ -1856,26 +1856,26 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
 
       {/* Блок 2: Таблица остатков */}
       <div className="bg-white rounded-xl border border-slate-200 w-full overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-          <table className="border-collapse bg-white" style={{ borderSpacing: 0 }}>
+        <div className="overflow-x-auto overflow-y-auto w-full" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+          <table className="border-collapse bg-white w-full" style={{ borderSpacing: 0, tableLayout: 'auto' }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '220px' }}>Номенклатура</th>
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[220px] bg-slate-100 z-20" style={{ minWidth: '100px' }}>Ед. изм.</th>
-                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '110px' }}>Цена за ед.</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ width: '220px' }}>Номенклатура</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[220px] bg-slate-100 z-20" style={{ width: '100px' }}>Ед. изм.</th>
+                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ width: '110px' }}>Цена за ед.</th>
                 {allEmployees.map((emp: gs.Employee) => {
                   const parts = emp.fullName.trim().split(' ');
                   const lastName = parts[0] || '';
                   const initials = parts.slice(1).map((p: string) => p[0] + '.').join('');
                   const formattedName = initials ? `${lastName} ${initials}` : lastName;
                   return (
-                    <th key={emp.id} className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100" style={{ minWidth: '130px' }}>
+                    <th key={emp.id} className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-100" style={{ width: '130px' }}>
                       {formattedName}
                     </th>
                   );
                 })}
-                <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '110px' }}>Итого кол-во</th>
-                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '130px' }}>Итого сумма</th>
+                <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ width: '110px' }}>Итого кол-во</th>
+                <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ width: '130px' }}>Итого сумма</th>
               </tr>
             </thead>
             <tbody>
