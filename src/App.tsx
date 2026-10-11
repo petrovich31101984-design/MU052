@@ -1855,9 +1855,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
       </div>
 
       {/* Блок 2: Таблица остатков */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-          <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0 }}>
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden max-w-full">
+        <div className="overflow-x-auto overflow-y-auto w-full" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+          <table className="w-max border-collapse bg-white" style={{ borderSpacing: 0, minWidth: '100%' }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
                 <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '220px' }}>Номенклатура</th>
