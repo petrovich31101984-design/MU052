@@ -239,7 +239,7 @@ function SettingsPage({ data }: { data: ReturnType<typeof useData> }) {
           </div>
           <div className="flex justify-between py-2 border-b border-slate-100">
             <span className="text-sm text-slate-500">Версия</span>
-            <span className="text-sm text-slate-800">3.0.0 (Apps Script Web App)</span>
+            <span className="text-sm text-slate-800">0.5.2 (Apps Script Web App)</span>
           </div>
           <div className="flex justify-between py-2 border-b border-slate-100">
             <span className="text-sm text-slate-500">Хранилище</span>
@@ -4065,7 +4065,7 @@ export default function App() {
             <div className="overflow-hidden">
               <h1 className="text-sm font-bold text-slate-800 whitespace-nowrap">АлкоСпас</h1>
               <p className="text-xs text-slate-500 leading-tight">Система медицинского учета</p>
-              <p className="text-xs text-emerald-600 font-semibold">(v. 0.5)</p>
+              <p className="text-xs text-emerald-600 font-semibold">(v. 0.5.2)</p>
             </div>
           )}
         </div>
