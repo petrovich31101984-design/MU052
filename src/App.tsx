@@ -1860,9 +1860,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
           <table className="border-collapse bg-white" style={{ borderSpacing: 0 }}>
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-100">
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '220px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2)' }}>Номенклатура</th>
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[220px] bg-slate-100 z-20" style={{ minWidth: '100px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2)', borderLeft: '2px solid #cbd5e1' }}>Ед. изм.</th>
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-20" style={{ minWidth: '110px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2)', borderLeft: '2px solid #cbd5e1' }}>Цена за ед.</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-0 bg-slate-100 z-30" style={{ minWidth: '220px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>Номенклатура</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[220px] bg-slate-100 z-31" style={{ minWidth: '100px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>Ед. изм.</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 sticky left-[320px] bg-slate-100 z-32" style={{ minWidth: '110px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>Цена за ед.</th>
                 {allEmployees.map((emp: gs.Employee) => {
                   const parts = emp.fullName.trim().split(' ');
                   const lastName = parts[0] || '';
@@ -1893,9 +1893,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
 
                     return (
                       <tr key={item.id} className="bg-white hover:bg-blue-50 transition-colors">
-                        <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10" style={{ minWidth: '220px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)' }}>{item.name}</td>
-                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[220px] bg-white z-5" style={{ minWidth: '100px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)', borderLeft: '2px solid #cbd5e1' }}>{item.unit}</td>
-                        <td className="px-3 py-2 text-sm text-left text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-5" style={{ minWidth: '110px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)', borderLeft: '2px solid #cbd5e1' }}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
+                        <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10" style={{ minWidth: '220px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.name}</td>
+                        <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[220px] bg-white z-11" style={{ minWidth: '100px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.unit}</td>
+                        <td className="px-3 py-2 text-sm text-left text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-12" style={{ minWidth: '110px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
                         {allEmployees.map((emp: gs.Employee) => {
                           const balance = calculateBalance(emp.id, item.id);
                           return (
@@ -1916,9 +1916,9 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
 
                   {/* Итоговая строка */}
                   <tr className="bg-slate-100 font-bold">
-                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10" style={{ minWidth: '220px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)' }}>ИТОГО</td>
-                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-[220px] bg-slate-100 z-5" style={{ minWidth: '100px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)', borderLeft: '2px solid #cbd5e1' }}>—</td>
-                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-5" style={{ minWidth: '110px', boxShadow: '3px 0 6px -1px rgba(0,0,0,0.3)', borderLeft: '2px solid #cbd5e1' }}>—</td>
+                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-slate-100 z-10" style={{ minWidth: '220px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>ИТОГО</td>
+                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-[220px] bg-slate-100 z-11" style={{ minWidth: '100px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>—</td>
+                    <td className="px-3 py-3 text-sm text-slate-800 border border-slate-300 sticky left-[320px] bg-slate-100 z-12" style={{ minWidth: '110px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>—</td>
                     {allEmployees.map((emp: gs.Employee) => {
                       const empTotal = calculateEmployeeTotal(emp.id);
                       return (
