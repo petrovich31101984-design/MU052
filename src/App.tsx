@@ -341,7 +341,7 @@ function ChatPage({ data }: { data: ReturnType<typeof useData> }) {
               return (
                 <button key={emp.id} onClick={() => setSelectedChat(emp.id)}
                   className={`w-full p-4 flex items-center gap-3 text-left border-b border-slate-100 ${
-                    selectedChat === emp.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'hover:bg-slate-50'
+                    selectedChat === emp.id ? 'bg-red-50 border-l-4 border-l-red-500' : 'hover:bg-slate-50'
                   }`}>
                   <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold text-white">{emp.fullName[0]}</div>
                   <div className="flex-1 min-w-0">
