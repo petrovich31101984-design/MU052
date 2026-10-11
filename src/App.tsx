@@ -3027,7 +3027,7 @@ function EmployeesPage({ data }: { data: ReturnType<typeof useData> }) {
         <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-medium shadow-sm">+ Добавить сотрудника</button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col mt-4">
         {search && (
           <div className="px-5 py-3 bg-blue-50 border-b border-blue-200 text-sm text-blue-700 flex-shrink-0">
             Найдено сотрудников: <span className="font-bold">{filtered.length}</span>
