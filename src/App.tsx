@@ -1892,7 +1892,7 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                     const totalSum = totalQty * item.currentPrice;
 
                     return (
-                      <tr key={item.id} className="bg-white">
+                      <tr key={item.id} className="bg-white hover:bg-blue-50 transition-colors">
                         <td className="px-3 py-2 text-sm text-slate-800 border border-slate-300 sticky left-0 bg-white z-10" style={{ minWidth: '220px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.name}</td>
                         <td className="px-3 py-2 text-sm text-slate-700 border border-slate-300 sticky left-[220px] bg-white z-11" style={{ minWidth: '100px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.unit}</td>
                         <td className="px-3 py-2 text-sm text-left text-slate-700 border border-slate-300 sticky left-[320px] bg-white z-12" style={{ minWidth: '110px', boxShadow: 'inset -1px 0 0 0 #cbd5e1, inset 1px 0 0 0 #cbd5e1, 2px 0 4px -1px rgba(0,0,0,0.2)' }}>{item.currentPrice.toLocaleString('ru-RU')} ₽</td>
