@@ -1866,21 +1866,6 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
     return total;
   };
 
-  // Принудительное обновление данных
-  const handleForceRefresh = async () => {
-    console.log('🔄 Принудительное обновление данных...');
-    
-    // Очищаем кэш браузера
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
-      console.log('🗑️ Кэш браузера очищен');
-    }
-    
-    // Перезагружаем страницу полностью
-    window.location.reload();
-  };
-
   return (
     <div className="space-y-4">
       {/* Блок 1: Шапка */}
@@ -4115,7 +4100,6 @@ export default function App() {
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => data.refresh()} className="p-2 rounded-lg hover:bg-slate-100 text-slate-600" title="Обновить данные">🔄</button>
             <div className="text-sm text-slate-500 hidden md:block">
               {new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
