@@ -3000,21 +3000,21 @@ function EmployeesPage({ data }: { data: ReturnType<typeof useData> }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-3">
+    <div className="flex flex-col h-[calc(100vh-88px)]">
+      <div className="flex gap-3 flex-shrink-0">
         <input type="text" placeholder="Поиск по ФИО..." value={search} onChange={e => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm" />
         <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-medium shadow-sm">+ Добавить сотрудника</button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col">
         {search && (
-          <div className="px-5 py-3 bg-blue-50 border-b border-blue-200 text-sm text-blue-700">
+          <div className="px-5 py-3 bg-blue-50 border-b border-blue-200 text-sm text-blue-700 flex-shrink-0">
             Найдено сотрудников: <span className="font-bold">{filtered.length}</span>
             {filtered.length === 0 && ' — попробуйте изменить запрос'}
           </div>
         )}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+        <div className="overflow-y-auto flex-1">
           <table className="w-full border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-slate-200 text-left bg-slate-50">
