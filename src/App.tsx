@@ -1874,8 +1874,8 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                     </th>
                   );
                 })}
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '110px' }}>Итого кол-во</th>
-                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200" style={{ minWidth: '130px' }}>Итого сумма</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200 sticky right-[130px] z-31" style={{ minWidth: '110px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, inset -1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>Итого кол-во</th>
+                <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border border-slate-300 bg-slate-200 sticky right-0 z-32" style={{ minWidth: '130px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>Итого сумма</th>
               </tr>
             </thead>
             <tbody>
@@ -1904,10 +1904,10 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                             </td>
                           );
                         })}
-                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 ${totalQty > 0 ? 'text-slate-800' : totalQty < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '110px' }}>
+                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 sticky right-[130px] z-11 ${totalQty > 0 ? 'text-slate-800' : totalQty < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '110px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, inset -1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>
                           {totalQty}
                         </td>
-                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 ${totalSum > 0 ? 'text-emerald-600' : totalSum < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
+                        <td className={`px-3 py-2 text-sm text-left font-semibold border border-slate-300 bg-slate-50 sticky right-0 z-12 ${totalSum > 0 ? 'text-emerald-600' : totalSum < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>
                           {totalSum.toLocaleString('ru-RU')} ₽
                         </td>
                       </tr>
@@ -1927,10 +1927,10 @@ function BalancePage({ data }: { data: ReturnType<typeof useData> }) {
                         </td>
                       );
                     })}
-                    <td className="px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 text-slate-800" style={{ minWidth: '110px' }}>
+                    <td className="px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 text-slate-800 sticky right-[130px] z-11" style={{ minWidth: '110px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, inset -1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>
                       {nomenclature.reduce((sum, item) => sum + calculateTotalQuantity(item.id), 0)}
                     </td>
-                    <td className={`px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px' }}>
+                    <td className={`px-3 py-3 text-sm text-left border border-slate-300 bg-slate-200 sticky right-0 z-12 ${calculateGrandTotal() > 0 ? 'text-emerald-600' : calculateGrandTotal() < 0 ? 'text-red-600' : 'text-slate-400'}`} style={{ minWidth: '130px', boxShadow: 'inset 1px 0 0 0 #cbd5e1, -2px 0 4px -1px rgba(0,0,0,0.2)' }}>
                       {calculateGrandTotal().toLocaleString('ru-RU')} ₽
                     </td>
                   </tr>
