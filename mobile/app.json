@@ -39,12 +39,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "expo-secure-store",
-      "expo-notifications",
-      "expo-location",
-      "expo-camera"
-    ]
+    "plugins": []
   }
 }

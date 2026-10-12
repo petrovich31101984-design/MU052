@@ -36,7 +36,7 @@ export default function App() {
 
   // Если конфигурация ещё не загружена, показываем загрузку
   if (isConfigured === null) {
-    return null; // Здесь можно добавить SplashScreen
+    return null;
   }
 
   // Если не настроен URL, показываем экран настройки
