@@ -191,7 +191,7 @@ function authenticateEmployee(personalNumber, password) {
       
       return {
         success: true,
-         {
+        data: {
           id: row[0],
           personalNumber: empNumber,
           fullName: row[2],
