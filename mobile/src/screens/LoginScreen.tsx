@@ -56,7 +56,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/logo.png')}
+          source={{ uri: 'https://raw.githubusercontent.com/petrovich31101984-design/MU052/recover-medication-accounting-app-d5a16/public/logo.png' }}
           style={styles.logo}
           resizeMode="contain"
         />
