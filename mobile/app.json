@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "АлкоСпас - Сотрудник",
+    "slug": "alkospas-employee",
+    "version": "0.5.2",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alkospas.employee",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Приложению нужен доступ к камере для сканирования штрих-кодов",
+        "NSLocationWhenInUseUsageDescription": "Приложению нужно ваше местоположение для фиксации вызовов",
+        "NSFaceIDUsageDescription": "Приложению нужен Face ID для быстрой авторизации"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.alkospas.employee",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "USE_BIOMETRIC"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": []
+  }
+}
